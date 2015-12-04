@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "quad.h"
 
 Quad* quad_gen(char op, Symbol *arg1, Symbol *arg2, Symbol *Res)
@@ -25,8 +28,8 @@ void  quad_add(Quad** list,Quad* n) //concatenacion
 	else {
 		Quad *s = (*list);
 		while(s->next != NULL)
-			scan = scan->next;
-		scan->next = n;
+			s = s->next;
+		s->next = n;
 	}
 }
 void  quad_print(Quad* list) //print

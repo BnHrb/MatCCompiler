@@ -1,4 +1,4 @@
-#define SYMBOL_MAX_NAME 64;
+#define SYMBOL_MAX_NAME 64
 
 #include "stdbool.h"
 
@@ -6,12 +6,13 @@ typedef struct symbol {
 	bool isConstant;
 	char* id;
 	int value;
-} symbol;
+	struct symbol* next;
+} Symbol;
 
-symbol* symbol_alloc();
-void symbol_free(symbol* s);
-symbol* symbol_newtemp(symbol** tds);
-symbol* symbol_newcst(symbol** tds, int cst);
-symbol* symbol_lookup(symbol** tds, char* id);
-symbol* symbol_add(symbol** tds, char* id);
-void symbol_print(symbol* s);
+Symbol* symbol_alloc();
+void symbol_free(Symbol* s);
+Symbol* symbol_newtemp(Symbol** tds);
+Symbol* symbol_newcst(Symbol** tds, int cst);
+Symbol* symbol_lookup(Symbol** tds, char* id);
+Symbol* symbol_add(Symbol** tds, char* id);
+void symbol_print(Symbol* s);
