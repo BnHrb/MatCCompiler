@@ -3,6 +3,7 @@
 	#include <stdlib.h>	
 
 	#include "quad.h"
+	#include "quad_list.h"
 
 	#define YYDEBUG 1
 
@@ -42,7 +43,7 @@
 %%
 
 axiome:
-	function	'\n'													{ printf("DONE\n"); }
+	function	'\n'												{ printf("DONE\n"); }
 
 function:
 	TYPE ID'('')' '{' stmtlist '}'									{}
@@ -83,6 +84,10 @@ condition:
 	;
 
 %%
+void yyerror (char *s)
+{
+  fprintf (stderr, "[Yacc] %s\n", s);
+}
 
 int main() {
 	#if YYDEBUG

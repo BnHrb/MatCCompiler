@@ -31,7 +31,7 @@ type		"int"|"float"|"matrix"
 {number} 		{ yylval.value = atoi(yytext); return NUM; }
 [(){};]			{ return yytext[0]; }
 [\n]			{ return yytext[0]; }
-[ ]			{}
+[ ]				{}
 .				{ printf("Caractère inconnu %s\n", yytext); }
 
 %%

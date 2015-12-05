@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "symbol.h"
 
 Symbol* symbol_alloc() {
@@ -64,6 +60,6 @@ Symbol* symbol_lookup(Symbol** tds, char* id) {
 
 void symbol_print(Symbol* s) {
 	printf("%s\n", s->id);
-	printf("\tconstant : %s\n", s->isConstant);
-	printf("\tvalue : %s\n", s->value);
+	printf("\tconstant : %s\n", (s->isConstant?"True":"False"));
+	printf("\tvalue : %d\n", s->value);
 }

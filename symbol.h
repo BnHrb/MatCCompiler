@@ -1,4 +1,10 @@
+#ifndef SYMBOL_H
+#define SYMBOL_H
 #define SYMBOL_MAX_NAME 64
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "stdbool.h"
 
@@ -16,3 +22,5 @@ Symbol* symbol_newcst(Symbol** tds, int cst);
 Symbol* symbol_lookup(Symbol** tds, char* id);
 Symbol* symbol_add(Symbol** tds, char* id);
 void symbol_print(Symbol* s);
+
+#endif	/*SYMBOL_H*/
