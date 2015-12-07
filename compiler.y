@@ -9,7 +9,7 @@
 
 	int yylex();
 	void yyerror(char*);
-
+//int main() { matrix A[2][2]={{12,27},{64,42}}; }
 %}
 
 %union {
@@ -57,6 +57,8 @@ stmt:
 	ID ASSIGN expr													{}
 	| TYPE ID 														{}
 	| TYPE ID ASSIGN expr 											{}
+	| TYPE ID arr													{}
+	| TYPE ID arr ASSIGN expr										{}
 	| ID "++"														{}
 	| ID "--"														{}
 	| WHILE '(' condition ')' '{' stmtlist '}'						{}
@@ -65,13 +67,23 @@ stmt:
 	| RETURN expr													{}
 	;
 
+arr:
+	'[' NUM ']'														{}
+	| '[' NUM ']' arr												{}
+	;
+
 expr:	
 	expr OP_BINAIRE expr											{}
 	| OP_UNAIRE expr												{}
+	| '{' innerlist '}'												{}
 	| '(' expr ')'													{}
 	| ID 															{}
 	| NUM 															{}
 	;
+
+innerlist : expr ',' expr											{}
+			| expr													{}
+			;
 
 condition:
 	ID EQUAL NUM 													{}

@@ -3,13 +3,11 @@
 static void quad_list_add (Quad_list *ql1, Quad_list *ql2)
 {
 	Quad_list *qltemp = ql1;
-	Quad_list *qltempNEXT;
 
 	while(qltemp->q->op < ql2->q->op && qltemp->next != NULL)
 	{
 		qltemp = qltemp->next;
 	}
-	qltempNEXT = qltemp->next;
 
 /*
 N = NULL or not taken into acount
