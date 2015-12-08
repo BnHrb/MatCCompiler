@@ -30,9 +30,9 @@ type		"int"|"float"|"matrix"
 "return"		{ return RETURN; }
 ","				{ return yytext[0]; }
 {type}			{ return TYPE; }
-{identifier}	{ yylval.name = strdup(yytext); return ID; }
+{identifier}	{ yylval.string = strdup(yytext); return ID; }
 {number} 		{ yylval.value = atoi(yytext); return NUM; }
-[(){}\[\];]		{ return yytext[0]; }
+[(){}\[\];<>]	{ return yytext[0]; }
 [\n]			{ return yytext[0]; }
 [ ]				{}
 .				{ printf("Caractère inconnu %s\n", yytext); }

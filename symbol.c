@@ -2,7 +2,7 @@
 
 Symbol* symbol_alloc() {
 	Symbol* new = malloc(sizeof(Symbol));
-	new->id = NULL;
+	new->id = malloc(SYMBOL_MAX_NAME*sizeof(char));
 	new->value = 0;
 	new->next = NULL;
 	new->isConstant = false;
@@ -10,21 +10,22 @@ Symbol* symbol_alloc() {
 }
 
 void symbol_free(Symbol* s) {
+	free(s->id);
 	free(s);
 }
 
 Symbol* symbol_add(Symbol** tds, char* id) {
 	if(*tds == NULL) {
-		Symbol* new = symbol_alloc();
-		new->id = id;
-		return new;
+		*tds = symbol_alloc();
+		strcpy((*tds)->id, id);
+		return *tds;
 	}
 	else {
 		Symbol* tmp = *tds;
 		while(tmp->next != NULL)
 			tmp = tmp->next;
 		tmp->next = symbol_alloc();
-		tmp->next->id = id;
+		strcpy(tmp->next->id, id);
 		return tmp->next;
 	}
 }
@@ -37,7 +38,7 @@ Symbol* symbol_newtemp(Symbol** tds) {
 	return symbol_add(tds, temp_name);
 }
 
-Symbol* symbol_newcst(Symbol** tds, int cst) {
+Symbol* symbol_newcst(Symbol** tds, float cst) {
 	Symbol* new = symbol_newtemp(tds);
 	new->isConstant = true;
 	new->value = cst;
@@ -58,8 +59,18 @@ Symbol* symbol_lookup(Symbol** tds, char* id) {
 		return NULL;
 }
 
-void symbol_print(Symbol* s) {
-	printf("%s\n", s->id);
-	printf("\tconstant : %s\n", (s->isConstant?"True":"False"));
-	printf("\tvalue : %d\n", s->value);
+void symbol_table_print(Symbol** tds) {	
+	Symbol* tmp = *tds;
+	printf("Symbol table :\n");
+	printf("ID\t\tIsConstant\tValue\n");
+	while(tmp != NULL) {
+		symbol_print(tmp, false);
+		tmp = tmp->next;
+	}
+}
+
+void symbol_print(Symbol* s, bool header) {
+	if(header)
+		printf("ID\t\tIsConstant\tValue\n");
+	printf("%s\t\t%s\t\t%f\n", s->id, (s->isConstant?"True":"False"), s->value);
 }

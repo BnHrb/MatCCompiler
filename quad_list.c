@@ -1,6 +1,6 @@
 #include "quad_list.h"
 
-static void quad_list_add (Quad_list *ql1, Quad_list *ql2)
+/*static void quad_list_add (Quad_list *ql1, Quad_list *ql2)
 {
 	Quad_list *qltemp = ql1;
 
@@ -9,7 +9,7 @@ static void quad_list_add (Quad_list *ql1, Quad_list *ql2)
 		qltemp = qltemp->next;
 	}
 
-/*
+
 N = NULL or not taken into acount
         +qltemp+      +ql2----+
         |N|  |*|----->| 1|  |N|
@@ -17,11 +17,11 @@ N = NULL or not taken into acount
         +------+      +-------+
 previous-^    ^-next
   region        region
-*/
+
   	qltemp->next = ql2;
   	ql2->previous = qltemp;
 
-/*
+
 These are NOT USED because we don't need to know if a command comes before another.
 N = NULL
 +qltemp+      +ql2-----+      +ql1temp+
@@ -38,13 +38,9 @@ N = NULL
 +-------+      +--------+      +------+
  ^-previous                     next-^
    region                     region
-*/
-}
 
-static void quad_list_complete (Quad_list *ql, Symbol *s)
-{
-	/* :( */;
 }
+*/
 
 static void quad_list_print (Quad_list *ql)
 {
@@ -57,6 +53,26 @@ static void quad_list_print (Quad_list *ql)
 	while(qltemp->next != NULL);
 }
 
+void quad_list_complete (Quad_list* list, Symbol* label)
+{
+	while(list != NULL) {
+		list->q->res = label;
+		list = list->next;
+	}
+}
+
+void quad_list_add(Quad_list** dest, Quad_list* src) {
+	if(*dest == NULL) {
+		*dest = src;
+	}
+	else {
+		Quad_list* scan = *dest;
+		while(scan->next != NULL)
+			scan = scan->next;
+		scan->next = src;
+	}
+}
+
 Quad_list* quad_list_new  (Quad *q)
 {
 	Quad_list *ql = (Quad_list*)malloc(sizeof(Quad_list));
@@ -64,8 +80,6 @@ Quad_list* quad_list_new  (Quad *q)
 	ql->previous = NULL;
 	ql->next = NULL;
 
-	ql->quad_list_add = quad_list_add;
-	ql->quad_list_complete = quad_list_complete;
 	ql->quad_list_print = quad_list_print;
 	return ql;
 }
