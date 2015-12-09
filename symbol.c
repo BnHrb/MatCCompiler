@@ -2,7 +2,7 @@
 
 Symbol* symbol_alloc() {
 	Symbol* new = malloc(sizeof(Symbol));
-	new->id = malloc(SYMBOL_MAX_NAME*sizeof(char));
+	new->id = (char*)malloc(sizeof(char));
 	new->value = 0;
 	new->next = NULL;
 	new->isConstant = false;
@@ -10,23 +10,28 @@ Symbol* symbol_alloc() {
 }
 
 void symbol_free(Symbol* s) {
-	free(s->id);
-	free(s);
+	if(s!=NULL)
+	{
+		free(s->id);
+		free(s);
+	}
 }
 
 Symbol* symbol_add(Symbol** tds, char* id) {
 	if(*tds == NULL) {
 		*tds = symbol_alloc();
-		strcpy((*tds)->id, id);
+		(*tds)->id = (char*)realloc((*tds)->id,sizeof(char)*(strlen(id)+1));
+		strncpy((*tds)->id, id, strlen(id));
 		return *tds;
 	}
 	else {
 		Symbol* tmp = *tds;
-		while(tmp->next != NULL)
+		while(tmp != NULL)
 			tmp = tmp->next;
-		tmp->next = symbol_alloc();
-		strcpy(tmp->next->id, id);
-		return tmp->next;
+		tmp = symbol_alloc();
+		tmp->id = (char*)realloc(tmp->id,sizeof(char)*(strlen(id)+1));
+		strncpy(tmp->id, id, strlen(id));
+		return tmp;
 	}
 }
 
@@ -52,11 +57,7 @@ Symbol* symbol_lookup(Symbol** tds, char* id) {
 			break;
 		tmp = tmp->next;
 	}
-
-	if(tmp != NULL)
-		return tmp;
-	else
-		return NULL;
+	return tmp;
 }
 
 void symbol_table_print(Symbol** tds) {	

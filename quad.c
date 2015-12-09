@@ -2,9 +2,16 @@
 
 static void  quad_print(Quad* q) //print
 {
-	printf("%c %7s %7s %7s\n",
-		q->op, q->arg1->id,
-		q->arg2->id, q->res->id);
+	printf("Quads: \n");
+	while(q != NULL)
+	{
+		printf("%c %7s %7s %7s\n",
+			q->op,
+			q->arg1!=NULL?q->arg1->id:"(null)",
+			q->arg2!=NULL?q->arg2->id:"(null)",
+			q->res!=NULL?q->res->id:"(null)");
+		q=q->next;
+	}
 }
 
 void quad_add(Quad** q, Quad* nextq)
@@ -37,9 +44,13 @@ Quad* quad_gen(int* label, char op, Symbol *arg1, Symbol *arg2, Symbol *Res)
 
 void quad_free(Quad* q)
 {
-	q->op = 0;
-	quad_free(q->next);
-	symbol_free(q->arg1);
-	symbol_free(q->arg2);
-	symbol_free(q->res);	
+	Quad *p;
+	while(q != NULL){
+		p = q->next;
+		symbol_free(q->arg1);
+		symbol_free(q->arg2);
+		symbol_free(q->res);
+		free(q);
+		q = p;
+	}
 }

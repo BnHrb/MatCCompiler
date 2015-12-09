@@ -15,6 +15,7 @@
 	Quad* code = NULL;
 	int next_quad = 0;
 //int main() { matrix A[2][2]={{12,27},{64,42}}; }
+//int main(){int a=5; if(a==5){return 6;}; return 0;}
 %}
 
 %union {
@@ -91,6 +92,9 @@ axiom:
 			quad_add(&code, is_false);
 
 			symbol_table_print(&symbol_table);
+			quad_list_print($1.truelist);
+			quad_list_print($1.falselist);
+			code->quad_print(code);
 
 			return 0;
 		}
@@ -187,6 +191,7 @@ condition:
 			// Goto true
 			$$.code = quad_gen(&next_quad, 'G', NULL, NULL, NULL);
 			$$.truelist = quad_list_new($$.code);
+			quad_list_print($$.truelist);
 			$$.falselist = NULL;
 		}
 	| FALSE 	
@@ -196,6 +201,7 @@ condition:
 			$$.code = quad_gen(&next_quad, 'G', NULL, NULL, NULL);
 			$$.truelist = NULL;
 			$$.falselist = quad_list_new($$.code);
+			quad_list_print($$.falselist);
 		}
 	| condition OR tag condition	
 		{
@@ -240,8 +246,7 @@ tag:
 	;
 
 %%
-void yyerror (char *s)
-{
+void yyerror (char *s){
   fprintf (stderr, "[Yacc] %s\n", s);
 }
 
@@ -249,6 +254,7 @@ int main() {
 	#if YYDEBUG
         yydebug = 1;
     #endif
-
-	return yyparse();
+    yyparse();
+    quad_free(code);
+	return 0;
 }

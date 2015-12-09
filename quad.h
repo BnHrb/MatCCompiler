@@ -14,8 +14,6 @@ typedef struct quad{
 	Symbol* res;
 	struct quad* next;
 
-	//       Quad to be update-v             v--the next quad 
-	void  (*quad_add)  (struct quad*,struct quad*);
 	void  (*quad_print)(struct quad*);
 }Quad;
 
