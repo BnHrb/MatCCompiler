@@ -6,9 +6,14 @@
 
 #include "symbol.h"
 
+enum operators
+{
+	PLUS_, MIN_, MUL_, DIV_, SUP_, INF_, SUPEQ_, INFEQ_, EQUAL_, ASSIGN_, GOTO_
+};
+
 typedef struct quad{
 	int label;
-	char op;
+	int op;
 	Symbol* arg1;
 	Symbol* arg2;
 	Symbol* res;
@@ -18,7 +23,7 @@ typedef struct quad{
 }Quad;
 
 //               v-- Operator in one character
-Quad* quad_gen  (int*, char, Symbol*, Symbol*, Symbol*);
+Quad* quad_gen  (int*, int, Symbol*, Symbol*, Symbol*);
 void  quad_add  (Quad**, Quad*);
 void  quad_free (Quad*);
 

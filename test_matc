@@ -1,0 +1,11 @@
+int main() {
+	int a=5; 
+
+	if(a==5)
+	{
+		a = a+a;
+		return 6;
+	};
+
+	return 0;
+}

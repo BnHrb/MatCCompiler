@@ -25,7 +25,8 @@ type		"int"|"float"|"matrix"
 "||"			{ return OR; }
 "&&"			{ return AND; }
 "!"				{ return NOT; }
-"+-*/"			{ return OP_BINAIRE; }
+"+"				{ return PLUS; }
+"-*/"			{ return yytext[0]; }
 "+-∼"			{ return OP_UNAIRE; }
 "return"		{ return RETURN; }
 ","				{ return yytext[0]; }
@@ -33,8 +34,7 @@ type		"int"|"float"|"matrix"
 {identifier}	{ yylval.string = strdup(yytext); return ID; }
 {number} 		{ yylval.value = atoi(yytext); return NUM; }
 [(){}\[\];<>]	{ return yytext[0]; }
-[\n]			{ return yytext[0]; }
-[ ]				{}
+[ \t\n]			{}
 .				{ printf("Caractère inconnu %s\n", yytext); }
 
 %%

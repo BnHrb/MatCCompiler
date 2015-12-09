@@ -5,7 +5,7 @@ static void  quad_print(Quad* q) //print
 	printf("Quads: \n");
 	while(q != NULL)
 	{
-		printf("%c %7s %7s %7s\n",
+		printf("%i %7s %7s %7s\n",
 			q->op,
 			q->arg1!=NULL?q->arg1->id:"(null)",
 			q->arg2!=NULL?q->arg2->id:"(null)",
@@ -27,7 +27,7 @@ void quad_add(Quad** q, Quad* nextq)
 	}
 }
 
-Quad* quad_gen(int* label, char op, Symbol *arg1, Symbol *arg2, Symbol *Res)
+Quad* quad_gen(int* label, int op, Symbol *arg1, Symbol *arg2, Symbol *Res)
 {
 	Quad *n = (Quad *)malloc(sizeof(Quad));
 	n->label = *label;

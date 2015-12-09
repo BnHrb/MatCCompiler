@@ -8,6 +8,7 @@
 
 	#define YYDEBUG 0
 
+	FILE* yyin;
 	int yylex();
 	void yyerror(char*);
 
@@ -40,7 +41,7 @@
 %token WHILE
 %token IF
 %token ELSE
-%token OP_BINAIRE
+%token PLUS
 %token OP_UNAIRE
 %token RETURN
 %token TYPE
@@ -58,14 +59,14 @@
 
 %left OR
 %left AND
-%left OP_BINAIRE
+%left PLUS
 %right NOT
 %right OP_UNAIRE
 
 %%
 
 axiom:
-	function '\n'
+	function
 		{
 			printf("DONE\n");
 
@@ -79,10 +80,10 @@ axiom:
 			Symbol* label_false;
 
 			label_true = symbol_newcst(&symbol_table, next_quad);
-			is_true = quad_gen(&next_quad, ':', cst_true, NULL, result);
-			jump = quad_gen(&next_quad, 'G', NULL, NULL, NULL);
+			is_true = quad_gen(&next_quad, ASSIGN_, cst_true, NULL, result);
+			jump = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
 			label_false = symbol_newcst(&symbol_table, next_quad);
-			is_false = quad_gen(&next_quad, ':', cst_false, NULL, result);
+			is_false = quad_gen(&next_quad, ASSIGN_, cst_false, NULL, result);
 			quad_list_complete($1.truelist, label_true);
 			quad_list_complete($1.falselist, label_false);
 
@@ -92,9 +93,9 @@ axiom:
 			quad_add(&code, is_false);
 
 			symbol_table_print(&symbol_table);
-			quad_list_print($1.truelist);
-			quad_list_print($1.falselist);
-			code->quad_print(code);
+			//quad_list_print($1.truelist);
+			//quad_list_print($1.falselist);
+			//code->quad_print(code);
 
 			return 0;
 		}
@@ -127,10 +128,22 @@ arr:
 	;
 
 expr:	
-	expr OP_BINAIRE expr											{}
+	expr PLUS expr
+		{
+			printf("expr -> expr + expr\n");
+			$$.result = symbol_newtemp(&symbol_table);
+			$$.code = $1.code;
+			quad_add(&$$.code, $3.code);
+			quad_add(&$$.code, quad_gen(&next_quad, PLUS_, $1.result, $3.result, $$.result));
+		}
 	| OP_UNAIRE expr												{}
 	| '{' innerlist '}'												{}
-	| '(' expr ')'													{}
+	| '(' expr ')'
+		{
+			printf("expression -> ( expression )\n");
+			$$.result = $2.result;
+			$$.code = $2.code;
+		}
 	| ID 
 		{
 			printf("expression -> ID (%s)\n", $1);
@@ -163,8 +176,8 @@ condition:
 		{
 			Quad* goto_true;
 			Quad* goto_false;
-			goto_true = quad_gen(&next_quad, '<', $1.result, $3.result, NULL);
-			goto_false = quad_gen(&next_quad, 'G', NULL, NULL, NULL);
+			goto_true = quad_gen(&next_quad, INF_, $1.result, $3.result, NULL);
+			goto_false = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
 			$$.code = $1.code;
 			quad_add(&$$.code, $3.code);
 			quad_add(&$$.code, goto_true);
@@ -176,8 +189,8 @@ condition:
 		{
 			Quad* goto_true;
 			Quad* goto_false;
-			goto_true = quad_gen(&next_quad, '>', $1.result, $3.result, NULL);
-			goto_false = quad_gen(&next_quad, 'G', NULL, NULL, NULL);
+			goto_true = quad_gen(&next_quad, SUP_, $1.result, $3.result, NULL);
+			goto_false = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
 			$$.code = $1.code;
 			quad_add(&$$.code, $3.code);
 			quad_add(&$$.code, goto_true);
@@ -189,19 +202,19 @@ condition:
 		{
 			printf("condition -> true\n");
 			// Goto true
-			$$.code = quad_gen(&next_quad, 'G', NULL, NULL, NULL);
+			$$.code = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
 			$$.truelist = quad_list_new($$.code);
-			quad_list_print($$.truelist);
+			//quad_list_print($$.truelist);
 			$$.falselist = NULL;
 		}
 	| FALSE 	
 		{
 			printf("condition -> false\n");
 			// Goto false
-			$$.code = quad_gen(&next_quad, 'G', NULL, NULL, NULL);
+			$$.code = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
 			$$.truelist = NULL;
 			$$.falselist = quad_list_new($$.code);
-			quad_list_print($$.falselist);
+			//quad_list_print($$.falselist);
 		}
 	| condition OR tag condition	
 		{
@@ -247,14 +260,29 @@ tag:
 
 %%
 void yyerror (char *s){
-  fprintf (stderr, "[Yacc] %s\n", s);
+	fprintf (stderr, "[Yacc] %s\n", s);
 }
 
-int main() {
+int main(int argc, char* argv[]) {
 	#if YYDEBUG
-        yydebug = 1;
-    #endif
-    yyparse();
-    quad_free(code);
+		yydebug = 1;
+	#endif
+
+	if(argc == 1) {
+		printf("Usage: %s file\n", argv[0]);
+		return -1;
+	}
+
+	FILE* f = fopen(argv[1], "r");
+
+	if(f == NULL) {
+		printf("Unable to open the file\n");
+		return -1;
+	}
+
+	yyin = f;
+
+	yyparse();
+
 	return 0;
 }
