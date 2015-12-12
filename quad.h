@@ -26,5 +26,5 @@ typedef struct quad{
 Quad* quad_gen  (int*, int, Symbol*, Symbol*, Symbol*);
 void  quad_add  (Quad**, Quad*);
 void  quad_free (Quad*);
-
+char* get_op_name(int);
 #endif /*QUAD_H*/

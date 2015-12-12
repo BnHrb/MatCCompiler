@@ -1,7 +1,7 @@
 int main() {
 	int a=5; 
 
-	if(a==5)
+	if(a>6)
 	{
 		a = a+a;
 		return 6;

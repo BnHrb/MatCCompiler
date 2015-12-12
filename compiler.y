@@ -5,6 +5,7 @@
 	#include "symbol.h"
 	#include "quad.h"
 	#include "quad_list.h"
+	#include "mips.h"
 
 	#define YYDEBUG 0
 
@@ -41,7 +42,7 @@
 %token WHILE
 %token IF
 %token ELSE
-%token PLUS
+%token PLUS MIN MUL DIV
 %token OP_UNAIRE
 %token RETURN
 %token TYPE
@@ -60,6 +61,10 @@
 %left OR
 %left AND
 %left PLUS
+%left MIN
+%left DIV
+%left MUL
+%left EQUAL
 %right NOT
 %right OP_UNAIRE
 
@@ -70,29 +75,29 @@ axiom:
 		{
 			printf("DONE\n");
 
-			Symbol* cst_true = symbol_newcst(&symbol_table, 1);
-			Symbol* cst_false = symbol_newcst(&symbol_table, 0);
-			Symbol* result = symbol_add(&symbol_table, "result");
-			Quad* is_true;
-			Quad* is_false;
-			Quad* jump;
-			Symbol* label_true;
-			Symbol* label_false;
+			// Symbol* cst_true = symbol_newcst(&symbol_table, 1);
+			// Symbol* cst_false = symbol_newcst(&symbol_table, 0);
+			// Symbol* result = symbol_add(&symbol_table, "result");
+			// Quad* is_true;
+			// Quad* is_false;
+			// Quad* jump;
+			// Symbol* label_true;
+			// Symbol* label_false;
 
-			label_true = symbol_newcst(&symbol_table, next_quad);
-			is_true = quad_gen(&next_quad, ASSIGN_, cst_true, NULL, result);
-			jump = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
-			label_false = symbol_newcst(&symbol_table, next_quad);
-			is_false = quad_gen(&next_quad, ASSIGN_, cst_false, NULL, result);
-			quad_list_complete($1.truelist, label_true);
-			quad_list_complete($1.falselist, label_false);
+			// label_true = symbol_newcst(&symbol_table, next_quad);
+			// is_true = quad_gen(&next_quad, ASSIGN_, cst_true, NULL, result);
+			// jump = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
+			// label_false = symbol_newcst(&symbol_table, next_quad);
+			// is_false = quad_gen(&next_quad, ASSIGN_, cst_false, NULL, result);
+			// quad_list_complete($1.truelist, label_true);
+			// quad_list_complete($1.falselist, label_false);
 
-			code = $1.code;
-			quad_add(&code, is_true);
-			quad_add(&code, jump);
-			quad_add(&code, is_false);
+			// code = $1.code;
+			// quad_add(&code, is_true);
+			// quad_add(&code, jump);
+			// quad_add(&code, is_false);
 
-			symbol_table_print(&symbol_table);
+			// symbol_table_print(&symbol_table);
 			//quad_list_print($1.truelist);
 			//quad_list_print($1.falselist);
 			//code->quad_print(code);
@@ -117,7 +122,40 @@ stmt:
 	| ID "++"														{}
 	| ID "--"														{}
 	| WHILE '(' condition ')' '{' stmtlist '}'						{}
-	| IF '(' condition ')' '{' stmtlist '}'							{}
+	| IF '(' condition ')' '{' stmtlist '}'
+		{
+			printf("stmt -> if ( condition ) { stmtlist }\n");
+
+			Symbol* cst_true = symbol_newcst(&symbol_table, 1);
+			Symbol* cst_false = symbol_newcst(&symbol_table, 0);
+			Symbol* result = symbol_add(&symbol_table, "result");
+			Quad* is_true;
+			Quad* is_false;
+			Quad* jump;
+			Symbol* label_true;
+			Symbol* label_false;
+
+			label_true = symbol_newcst(&symbol_table, next_quad);
+			is_true = quad_gen(&next_quad, ASSIGN_, cst_true, NULL, result);
+			jump = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
+			label_false = symbol_newcst(&symbol_table, next_quad);
+			is_false = quad_gen(&next_quad, ASSIGN_, cst_false, NULL, result);
+			quad_list_complete($3.truelist, label_true);
+			quad_list_complete($3.falselist, label_false);
+
+			symbol_newtemp(&symbol_table);
+
+			code = $3.code;
+			quad_add(&code, is_true);
+			quad_add(&code, jump);
+			quad_add(&code, is_false);
+
+			quad_list_print($3.truelist);
+			quad_list_print($3.falselist);
+			code->quad_print(code);
+
+			symbol_table_print(&symbol_table);		
+		}
 	| IF '(' condition ')' '{' stmtlist '}' ELSE '{' stmtlist '}'	{}
 	| RETURN expr													{}
 	;
@@ -136,7 +174,37 @@ expr:
 			quad_add(&$$.code, $3.code);
 			quad_add(&$$.code, quad_gen(&next_quad, PLUS_, $1.result, $3.result, $$.result));
 		}
-	| OP_UNAIRE expr												{}
+	| expr MIN expr
+		{
+			printf("expr -> expr - expr\n");
+			$$.result = symbol_newtemp(&symbol_table);
+			$$.code = $1.code;
+			quad_add(&$$.code, $3.code);
+			quad_add(&$$.code, quad_gen(&next_quad, MIN_, $1.result, $3.result, $$.result));
+		}
+	| expr DIV expr
+		{
+			printf("expr -> expr - expr\n");
+			$$.result = symbol_newtemp(&symbol_table);
+			$$.code = $1.code;
+			quad_add(&$$.code, $3.code);
+			quad_add(&$$.code, quad_gen(&next_quad, DIV_, $1.result, $3.result, $$.result));
+		}
+	| expr MUL expr
+		{
+			printf("expr -> expr * expr\n");
+			$$.result = symbol_newtemp(&symbol_table);
+			$$.code = $1.code;
+			quad_add(&$$.code, $3.code);
+			quad_add(&$$.code, quad_gen(&next_quad, MUL_, $1.result, $3.result, $$.result));
+		}
+	// | '-' expr
+	// 	{
+	// 		printf("expr -> - expr\n");
+	// 		$$.result = symbol_newtemp(&symbol_table);
+	// 		$$.code = $2.code;
+	// 		quad_add(&$$.code, quad_gen(&next_quad, MIN_, NULL, $2.result, $$.result));
+	// 	}
 	| '{' innerlist '}'												{}
 	| '(' expr ')'
 		{
@@ -170,8 +238,19 @@ innerlist : expr ',' expr											{}
 			;
 
 condition:
-	ID EQUAL NUM 
-		{ }
+	expr EQUAL expr 
+		{ 
+			Quad* goto_true;
+			Quad* goto_false;
+			goto_true = quad_gen(&next_quad, EQUAL_, $1.result, $3.result, NULL);
+			goto_false = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
+			$$.code = $1.code;
+			quad_add(&$$.code, $3.code);
+			quad_add(&$$.code, goto_true);
+			quad_add(&$$.code, goto_false);
+			$$.truelist = quad_list_new(goto_true);
+			$$.falselist = quad_list_new(goto_false);
+		}
 	| expr '<' expr
 		{
 			Quad* goto_true;

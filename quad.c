@@ -5,8 +5,8 @@ static void  quad_print(Quad* q) //print
 	printf("Quads: \n");
 	while(q != NULL)
 	{
-		printf("%i %7s %7s %7s\n",
-			q->op,
+		printf("%s %7s %7s %7s\n",
+			get_op_name(q->op),
 			q->arg1!=NULL?q->arg1->id:"(null)",
 			q->arg2!=NULL?q->arg2->id:"(null)",
 			q->res!=NULL?q->res->id:"(null)");
@@ -53,4 +53,44 @@ void quad_free(Quad* q)
 		free(q);
 		q = p;
 	}
+}
+
+char* get_op_name(int op) {
+	switch(op){
+		case 0:
+			return "PLUS";
+			break;
+		case 1:
+			return "MINUS";
+			break;
+		case 2:
+			return "MUL";
+			break;
+		case 3:
+			return "DIV";
+			break;
+		case 4:
+			return "SUP";
+			break;
+		case 5:
+			return "INF";
+			break;
+		case 6:
+			return "SUPEQ";
+			break;
+		case 7:
+			return "INFEQ";
+			break;
+		case 8:
+			return "EQUAL";
+			break;
+		case 9:
+			return "ASSIGN";
+			break;
+		case 10:
+			return "GOTO";
+			break;
+	}
+
+	return "NULL";
 }

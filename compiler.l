@@ -25,8 +25,10 @@ type		"int"|"float"|"matrix"
 "||"			{ return OR; }
 "&&"			{ return AND; }
 "!"				{ return NOT; }
+"-"				{ return MIN; }
+"*"				{ return MUL; }
+"/"				{ return DIV; }
 "+"				{ return PLUS; }
-"-*/"			{ return yytext[0]; }
 "+-∼"			{ return OP_UNAIRE; }
 "return"		{ return RETURN; }
 ","				{ return yytext[0]; }
