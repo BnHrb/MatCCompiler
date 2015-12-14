@@ -418,6 +418,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	FILE* f = fopen(argv[1], "r");
+	FILE* output = fopen("output.s","w");
 
 	if(f == NULL) {
 		printf("Unable to open the file\n");
@@ -427,6 +428,8 @@ int main(int argc, char* argv[]) {
 	yyin = f;
 
 	yyparse();
+
+	translate_to_mips(output, symbol_table, code);
 
 	return 0;
 }
