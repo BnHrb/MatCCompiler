@@ -8,11 +8,22 @@
 
 #include "stdbool.h"
 
+typedef union {
+	int int_v;
+	float float_v;
+	void* null_v;
+	char* string_v;
+} symbol_value;
+
+typedef enum {
+	INT_, FLOAT_, STRING_, NULL_
+} symbol_type;
+
 typedef struct symbol {
 	bool isConstant;
 	char* id;
-	int value;
-	int type;
+	symbol_value value;
+	symbol_type type;
 	struct symbol* next;
 } Symbol;
 

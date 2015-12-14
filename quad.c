@@ -57,40 +57,40 @@ void quad_free(Quad* q)
 
 char* get_op_name(int op) {
 	switch(op){
-		case 0:
+		case ADD_:
 			return "PLUS";
 			break;
-		case 1:
+		case MIN_:
 			return "MINUS";
 			break;
-		case 2:
+		case MUL_:
 			return "MUL";
 			break;
-		case 3:
+		case DIV_:
 			return "DIV";
 			break;
-		case 4:
+		case SUP_:
 			return "SUP";
 			break;
-		case 5:
+		case INF_:
 			return "INF";
 			break;
-		case 6:
+		case SUPEQ_:
 			return "SUPEQ";
 			break;
-		case 7:
+		case INFEQ_:
 			return "INFEQ";
 			break;
-		case 8:
+		case EQUAL_:
 			return "EQUAL";
 			break;
-		case 9:
+		case ASSIGN_:
 			return "ASSIGN";
 			break;
-		case 10:
+		case GOTO_:
 			return "GOTO";
 			break;
-		case 11:
+		case NOP_:
 			return "NOP";
 			break;
 	}

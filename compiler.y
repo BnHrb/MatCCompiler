@@ -35,22 +35,19 @@
 	} code_condition;
 }
 
-%token <string> ID
+%token <string> ID STRING
 %token <value> NUM
 %token EQUAL
 %token ASSIGN
 %token WHILE
-%token IF
-%token ELSE
+%token IF ELSE
 %token PLUS MIN MUL DIV
 %token OP_UNAIRE
-%token RETURN
+%token RETURN PRINTF PRINT
 %token TYPE
 %token TRUE
 %token FALSE
-%token OR
-%token AND
-%token NOT
+%token OR AND NOT
 
 %type <code_expression> axiom
 %type <code_expression> function
@@ -257,6 +254,11 @@ stmt:
 		{
 			printf("stmt -> RETURN expr\n");
 			$$.code = quad_gen(&next_quad, RETURN_, $2.result, NULL, NULL);
+		}
+	| PRINTF '(' STRING ')'
+		{
+			printf("stmt -> PRINTF (%s)\n", $3);
+			//$$.code = quad_gen(&next_quad, PRINTF_, $3, NULL, NULL);
 		}
 	;
 
@@ -467,7 +469,7 @@ int main(int argc, char* argv[]) {
 
 	yyparse();
 
-	translate_to_mips(output, symbol_table, code);
+	//translate_to_mips(output, symbol_table, code);
 
 	return 0;
 }
