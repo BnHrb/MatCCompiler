@@ -8,7 +8,7 @@
 
 enum operators
 {
-	PLUS_, MIN_, MUL_, DIV_, SUP_, INF_, SUPEQ_, INFEQ_, EQUAL_, ASSIGN_, GOTO_
+	ADD_, MIN_, MUL_, DIV_, SUP_, INF_, SUPEQ_, INFEQ_, EQUAL_, ASSIGN_, GOTO_, NOP_
 };
 
 typedef struct quad{

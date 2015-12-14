@@ -60,7 +60,7 @@ Symbol* symbol_lookup(Symbol** tds, char* id) {
 
 void symbol_table_print(Symbol** tds) {	
 	Symbol* tmp = *tds;
-	printf("Symbol table :\n");
+	printf("\nSymbol table :\n");
 	printf("ID\t\tIsConstant\tValue\n");
 	while(tmp != NULL) {
 		symbol_print(tmp, false);

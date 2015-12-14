@@ -12,6 +12,7 @@ typedef struct symbol {
 	bool isConstant;
 	char* id;
 	int value;
+	int type;
 	struct symbol* next;
 } Symbol;
 

@@ -2,10 +2,11 @@
 
 void  quad_print(Quad* q) //print
 {
-	printf("Quads: \n");
+	printf("\nQuads table: \n");
 	while(q != NULL)
 	{
-		printf("%s %7s %7s %7s\n",
+		printf("%d\t%s\t%7s\t%7s\t%7s\n",
+			q->label,
 			get_op_name(q->op),
 			q->arg1!=NULL?q->arg1->id:"(null)",
 			q->arg2!=NULL?q->arg2->id:"(null)",
@@ -88,6 +89,9 @@ char* get_op_name(int op) {
 			break;
 		case 10:
 			return "GOTO";
+			break;
+		case 11:
+			return "NOP";
 			break;
 	}
 

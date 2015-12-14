@@ -14,7 +14,6 @@
 	void yyerror(char*);
 
 	Symbol* symbol_table = NULL;
-	Symbol* test = NULL;
 	Quad* code = NULL;
 	int next_quad = 0;
 //int main() { matrix A[2][2]={{12,27},{64,42}}; }
@@ -53,12 +52,12 @@
 %token AND
 %token NOT
 
-%type <code_condition> axiom
-%type <code_condition> function
+%type <code_expression> axiom
+%type <code_expression> function
 %type <code_expression> expr
 %type <code_condition> condition
-%type <code_condition> stmt
-%type <code_condition> stmtlist
+%type <code_expression> stmt
+%type <code_expression> stmtlist
 %type <label> tag
 
 %left OR
@@ -107,14 +106,7 @@ axiom:
 
 			code = $1.code;
 
-			//quad_print(code);
-
-			// symbol_add(&test, "a");
-			// symbol_add(&test, "b");
-			// symbol_newcst(&test, 10);
-			// symbol_newtemp(&test);
-
-			//symbol_table_print(&test);
+			quad_print(code);
 
 			symbol_table_print(&symbol_table);
 
@@ -124,7 +116,7 @@ axiom:
 function:
 	TYPE ID'('')' '{' stmtlist '}'
 	{
-		printf("function -> TYPE ID () { stmtlist }\n");
+		printf("function -> TYPE ID (%s) () { stmtlist }\n", $2);
 		$$.code = $6.code;
 	}
 
@@ -132,7 +124,8 @@ stmtlist:
 	stmtlist stmt ';'
 	{
 		printf("stmtlist -> stmtlist stmt\n");
-		$$.code = $2.code;
+		$$.code = $1.code;
+		quad_add(&$$.code, $2.code);
 	}
 	| stmt ';'
 	{
@@ -144,17 +137,51 @@ stmtlist:
 stmt:
 	ID ASSIGN expr
 		{
+			printf("stmt -> ID (%s) = expr\n", $1);
+			Symbol* s = symbol_lookup(&symbol_table, $1);
+			if(s == NULL) {
+				printf("Error : variable %s doesn't exist.\n", $1);
+				return -1;
+			}
 			$$.code = $3.code;
+			quad_add(&$$.code, quad_gen(&next_quad, ASSIGN_, $3.result, NULL, s));
 		}
 	| TYPE ID 
 		{
-
+			printf("stmt -> TYPE ID (%s)\n", $2);
+			symbol_add(&symbol_table, $2);
 		}
-	| TYPE ID ASSIGN expr 											{}
+	| TYPE ID ASSIGN expr 	
+		{
+			printf("stmt -> TYPE ID (%s) = expr\n", $2);
+			Symbol* s = symbol_add(&symbol_table, $2);
+			$$.code = $4.code;
+			quad_add(&$$.code, quad_gen(&next_quad, ASSIGN_, $4.result, NULL, s));
+		}
 	| TYPE ID arr													{}
 	| TYPE ID arr ASSIGN expr										{}
-	| ID "++"														{}
-	| ID "--"														{}
+	| ID "++"														
+		{
+			printf("stmt -> ID (%s) ++\n", $1);
+			Symbol* s = symbol_lookup(&symbol_table, $1);
+			if(s == NULL) {
+				printf("Error : variable %s doesn't exist.\n", $1);
+				return -1;
+			}
+			Symbol* cst_add = symbol_newcst(&symbol_table, 1);
+			$$.code = quad_gen(&next_quad, ADD_, s, cst_add, s);
+		}
+	| ID "--"														
+		{
+			printf("stmt -> ID (%s) --\n", $1);
+			Symbol* s = symbol_lookup(&symbol_table, $1);
+			if(s == NULL) {
+				printf("Error : variable %s doesn't exist.\n", $1);
+				return -1;
+			}
+			Symbol* cst_add = symbol_newcst(&symbol_table, 1);
+			$$.code = quad_gen(&next_quad, MIN_, s, cst_add, s);			
+		}
 	| WHILE '(' condition ')' '{' stmtlist '}'						{}
 	| IF '(' condition ')' '{' stmtlist '}'
 		{
@@ -166,23 +193,30 @@ stmt:
 			Quad* is_true;
 			Quad* is_false;
 			Quad* jump;
+			Quad* end;
 			Symbol* label_true;
 			Symbol* label_false;
+			Symbol* label_end;
 
 			label_true = symbol_newcst(&symbol_table, next_quad);
 			is_true = quad_gen(&next_quad, ASSIGN_, cst_true, NULL, result);
-			jump = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
 			label_false = symbol_newcst(&symbol_table, next_quad);
 			is_false = quad_gen(&next_quad, ASSIGN_, cst_false, NULL, result);
 			quad_list_complete($3.truelist, label_true);
 			quad_list_complete($3.falselist, label_false);
 
-			symbol_newtemp(&symbol_table);
+			label_end = symbol_newcst(&symbol_table, next_quad);
+			end = quad_gen(&next_quad, NOP_, NULL, NULL, NULL);
+			jump = quad_gen(&next_quad, GOTO_, NULL, NULL, label_end);
+
 
 			$$.code = $3.code;
 			quad_add(&$$.code, is_true);
+			quad_add(&$$.code, $6.code);
 			quad_add(&$$.code, jump);
 			quad_add(&$$.code, is_false);
+			quad_add(&$$.code, end);
+
 		}
 	| IF '(' condition ')' '{' stmtlist '}' ELSE '{' stmtlist '}'	{}
 	| RETURN expr													{}
@@ -200,7 +234,7 @@ expr:
 			$$.result = symbol_newtemp(&symbol_table);
 			$$.code = $1.code;
 			quad_add(&$$.code, $3.code);
-			quad_add(&$$.code, quad_gen(&next_quad, PLUS_, $1.result, $3.result, $$.result));
+			quad_add(&$$.code, quad_gen(&next_quad, ADD_, $1.result, $3.result, $$.result));
 		}
 	| expr MIN expr
 		{
@@ -236,13 +270,13 @@ expr:
 	| '{' innerlist '}'												{}
 	| '(' expr ')'
 		{
-			printf("expression -> ( expression )\n");
+			printf("expr -> ( expr )\n");
 			$$.result = $2.result;
 			$$.code = $2.code;
 		}
 	| ID 
 		{
-			printf("expression -> ID (%s)\n", $1);
+			printf("expr -> ID (%s)\n", $1);
 			// Find or create the named symbol to hold the identifier value
 			$$.result = symbol_lookup(&symbol_table, $1);
 			if($$.result == NULL)
@@ -253,7 +287,7 @@ expr:
 		}	
 	| NUM
 		{
-			printf("expression -> NUM (%d)\n", $1);
+			printf("expr -> NUM (%d)\n", $1);
 			// Create the tempory symbol to hold the constant value
 			$$.result = symbol_newcst(&symbol_table, $1);
 			// No code is generated for this
@@ -268,6 +302,7 @@ innerlist : expr ',' expr											{}
 condition:
 	expr EQUAL expr 
 		{ 
+			printf("condition -> expr == expr\n");
 			Quad* goto_true;
 			Quad* goto_false;
 			goto_true = quad_gen(&next_quad, EQUAL_, $1.result, $3.result, NULL);
@@ -281,6 +316,7 @@ condition:
 		}
 	| expr '<' expr
 		{
+			printf("condition -> expr < expr\n");
 			Quad* goto_true;
 			Quad* goto_false;
 			goto_true = quad_gen(&next_quad, INF_, $1.result, $3.result, NULL);
@@ -294,6 +330,7 @@ condition:
 		}
 	| expr '>' expr
 		{
+			printf("condition -> expr > expr\n");
 			Quad* goto_true;
 			Quad* goto_false;
 			goto_true = quad_gen(&next_quad, SUP_, $1.result, $3.result, NULL);
