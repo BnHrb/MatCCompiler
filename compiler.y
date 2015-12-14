@@ -218,8 +218,46 @@ stmt:
 			quad_add(&$$.code, end);
 
 		}
-	| IF '(' condition ')' '{' stmtlist '}' ELSE '{' stmtlist '}'	{}
-	| RETURN expr													{}
+	| IF '(' condition ')' '{' stmtlist '}' ELSE '{' stmtlist '}'	
+		{
+			printf("stmt -> if ( condition ) { stmtlist } else { stmtlist }\n");
+
+			Symbol* cst_true = symbol_newcst(&symbol_table, 1);
+			Symbol* cst_false = symbol_newcst(&symbol_table, 0);
+			Symbol* result = symbol_add(&symbol_table, "result");
+			Quad* is_true;
+			Quad* is_false;
+			Quad* jump;
+			Quad* end;
+			Symbol* label_true;
+			Symbol* label_false;
+			Symbol* label_end;
+
+			label_true = symbol_newcst(&symbol_table, next_quad);
+			is_true = quad_gen(&next_quad, ASSIGN_, cst_true, NULL, result);
+			label_false = symbol_newcst(&symbol_table, next_quad);
+			is_false = quad_gen(&next_quad, ASSIGN_, cst_false, NULL, result);
+			quad_list_complete($3.truelist, label_true);
+			quad_list_complete($3.falselist, label_false);
+
+			label_end = symbol_newcst(&symbol_table, next_quad);
+			end = quad_gen(&next_quad, NOP_, NULL, NULL, NULL);
+			jump = quad_gen(&next_quad, GOTO_, NULL, NULL, label_end);
+
+
+			$$.code = $3.code;
+			quad_add(&$$.code, is_true);
+			quad_add(&$$.code, $6.code);
+			quad_add(&$$.code, jump);
+			quad_add(&$$.code, is_false);
+			quad_add(&$$.code, $10.code);
+			quad_add(&$$.code, end);	
+		}
+	| RETURN expr 
+		{
+			printf("stmt -> RETURN expr\n");
+			$$.code = quad_gen(&next_quad, RETURN_, $2.result, NULL, NULL);
+		}
 	;
 
 arr:
