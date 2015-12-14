@@ -1,5 +1,6 @@
 int main() {
 	int a=5; 
+	float b;
 
 	if(a>6 && a<12)
 	{
@@ -7,4 +8,9 @@ int main() {
 	};
 
 	a = 100;
+	b = 103.1337;
+
+	printf("hello");
+
+	print(a);
 }

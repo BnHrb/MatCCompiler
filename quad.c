@@ -93,6 +93,12 @@ char* get_op_name(int op) {
 		case NOP_:
 			return "NOP";
 			break;
+		case PRINTF_:
+			return "PRINTF";
+			break;
+		case PRINT_:
+			return "PRINT";
+			break;
 	}
 
 	return "NULL";

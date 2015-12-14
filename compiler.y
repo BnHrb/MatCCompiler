@@ -22,7 +22,8 @@
 
 %union {
 	char* string; // token ID
-	int value; // token NUMBER
+	int value_int; // token NUMBER
+	float value_float;
 	struct symbol* label;
 	struct {
 		struct symbol* result;
@@ -35,8 +36,9 @@
 	} code_condition;
 }
 
-%token <string> ID STRING
-%token <value> NUM
+%token <string> ID STRING TYPE
+%token <value_int> NUM_INT
+%token <value_float> NUM_FLOAT
 %token EQUAL
 %token ASSIGN
 %token WHILE
@@ -44,7 +46,6 @@
 %token PLUS MIN MUL DIV
 %token OP_UNAIRE
 %token RETURN PRINTF PRINT
-%token TYPE
 %token TRUE
 %token FALSE
 %token OR AND NOT
@@ -74,8 +75,8 @@ axiom:
 		{
 			printf("DONE\n");
 
-			// Symbol* cst_true = symbol_newcst(&symbol_table, 1);
-			// Symbol* cst_false = symbol_newcst(&symbol_table, 0);
+			// Symbol* cst_true = symbol_newcst_int(&symbol_table, 1);
+			// Symbol* cst_false = symbol_newcst_int(&symbol_table, 0);
 			// Symbol* result = symbol_add(&symbol_table, "result");
 			// Quad* is_true;
 			// Quad* is_false;
@@ -83,10 +84,10 @@ axiom:
 			// Symbol* label_true;
 			// Symbol* label_false;
 
-			// label_true = symbol_newcst(&symbol_table, next_quad);
+			// label_true = symbol_newcst_int(&symbol_table, next_quad);
 			// is_true = quad_gen(&next_quad, ASSIGN_, cst_true, NULL, result);
 			// jump = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
-			// label_false = symbol_newcst(&symbol_table, next_quad);
+			// label_false = symbol_newcst_int(&symbol_table, next_quad);
 			// is_false = quad_gen(&next_quad, ASSIGN_, cst_false, NULL, result);
 			// quad_list_complete($1.truelist, label_true);
 			// quad_list_complete($1.falselist, label_false);
@@ -113,7 +114,7 @@ axiom:
 function:
 	TYPE ID'('')' '{' stmtlist '}'
 	{
-		printf("function -> TYPE ID (%s) () { stmtlist }\n", $2);
+		printf("function -> TYPE (%s) ID (%s) () { stmtlist }\n", $1,  $2);
 		$$.code = $6.code;
 	}
 
@@ -145,13 +146,24 @@ stmt:
 		}
 	| TYPE ID 
 		{
-			printf("stmt -> TYPE ID (%s)\n", $2);
-			symbol_add(&symbol_table, $2);
+			printf("stmt -> TYPE (%s) ID (%s)\n", $1, $2);
+			if(strcmp($1, "int") == 0) {
+				symbol_add(&symbol_table, $2, INT_);
+			}
+			else {
+				symbol_add(&symbol_table, $2, FLOAT_);
+			}
 		}
 	| TYPE ID ASSIGN expr 	
 		{
-			printf("stmt -> TYPE ID (%s) = expr\n", $2);
-			Symbol* s = symbol_add(&symbol_table, $2);
+			printf("stmt -> TYPE (%s) ID (%s) = expr\n", $1, $2);
+			Symbol* s = NULL;
+			if(strcmp($1, "int") == 0) {
+				s = symbol_add(&symbol_table, $2, INT_);
+			}
+			else {
+				s = symbol_add(&symbol_table, $2, FLOAT_);
+			}
 			$$.code = $4.code;
 			quad_add(&$$.code, quad_gen(&next_quad, ASSIGN_, $4.result, NULL, s));
 		}
@@ -165,7 +177,7 @@ stmt:
 				printf("Error : variable %s doesn't exist.\n", $1);
 				return -1;
 			}
-			Symbol* cst_add = symbol_newcst(&symbol_table, 1);
+			Symbol* cst_add = symbol_newcst_int(&symbol_table, 1);
 			$$.code = quad_gen(&next_quad, ADD_, s, cst_add, s);
 		}
 	| ID "--"														
@@ -176,7 +188,7 @@ stmt:
 				printf("Error : variable %s doesn't exist.\n", $1);
 				return -1;
 			}
-			Symbol* cst_add = symbol_newcst(&symbol_table, 1);
+			Symbol* cst_add = symbol_newcst_int(&symbol_table, 1);
 			$$.code = quad_gen(&next_quad, MIN_, s, cst_add, s);			
 		}
 	| WHILE '(' condition ')' '{' stmtlist '}'						{}
@@ -184,9 +196,9 @@ stmt:
 		{
 			printf("stmt -> if ( condition ) { stmtlist }\n");
 
-			Symbol* cst_true = symbol_newcst(&symbol_table, 1);
-			Symbol* cst_false = symbol_newcst(&symbol_table, 0);
-			Symbol* result = symbol_add(&symbol_table, "result");
+			Symbol* cst_true = symbol_newcst_int(&symbol_table, 1);
+			Symbol* cst_false = symbol_newcst_int(&symbol_table, 0);
+			Symbol* result = symbol_add(&symbol_table, "result", INT_);
 			Quad* is_true;
 			Quad* is_false;
 			Quad* jump;
@@ -195,14 +207,14 @@ stmt:
 			Symbol* label_false;
 			Symbol* label_end;
 
-			label_true = symbol_newcst(&symbol_table, next_quad);
+			label_true = symbol_newcst_int(&symbol_table, next_quad);
 			is_true = quad_gen(&next_quad, ASSIGN_, cst_true, NULL, result);
-			label_false = symbol_newcst(&symbol_table, next_quad);
+			label_false = symbol_newcst_int(&symbol_table, next_quad);
 			is_false = quad_gen(&next_quad, ASSIGN_, cst_false, NULL, result);
 			quad_list_complete($3.truelist, label_true);
 			quad_list_complete($3.falselist, label_false);
 
-			label_end = symbol_newcst(&symbol_table, next_quad);
+			label_end = symbol_newcst_int(&symbol_table, next_quad);
 			end = quad_gen(&next_quad, NOP_, NULL, NULL, NULL);
 			jump = quad_gen(&next_quad, GOTO_, NULL, NULL, label_end);
 
@@ -219,9 +231,9 @@ stmt:
 		{
 			printf("stmt -> if ( condition ) { stmtlist } else { stmtlist }\n");
 
-			Symbol* cst_true = symbol_newcst(&symbol_table, 1);
-			Symbol* cst_false = symbol_newcst(&symbol_table, 0);
-			Symbol* result = symbol_add(&symbol_table, "result");
+			Symbol* cst_true = symbol_newcst_int(&symbol_table, 1);
+			Symbol* cst_false = symbol_newcst_int(&symbol_table, 0);
+			Symbol* result = symbol_add(&symbol_table, "result", INT_);
 			Quad* is_true;
 			Quad* is_false;
 			Quad* jump;
@@ -230,14 +242,14 @@ stmt:
 			Symbol* label_false;
 			Symbol* label_end;
 
-			label_true = symbol_newcst(&symbol_table, next_quad);
+			label_true = symbol_newcst_int(&symbol_table, next_quad);
 			is_true = quad_gen(&next_quad, ASSIGN_, cst_true, NULL, result);
-			label_false = symbol_newcst(&symbol_table, next_quad);
+			label_false = symbol_newcst_int(&symbol_table, next_quad);
 			is_false = quad_gen(&next_quad, ASSIGN_, cst_false, NULL, result);
 			quad_list_complete($3.truelist, label_true);
 			quad_list_complete($3.falselist, label_false);
 
-			label_end = symbol_newcst(&symbol_table, next_quad);
+			label_end = symbol_newcst_int(&symbol_table, next_quad);
 			end = quad_gen(&next_quad, NOP_, NULL, NULL, NULL);
 			jump = quad_gen(&next_quad, GOTO_, NULL, NULL, label_end);
 
@@ -258,20 +270,29 @@ stmt:
 	| PRINTF '(' STRING ')'
 		{
 			printf("stmt -> PRINTF (%s)\n", $3);
-			//$$.code = quad_gen(&next_quad, PRINTF_, $3, NULL, NULL);
+			char * str = $3;
+			str++;
+			str[strlen(str)-1] = 0;
+			Symbol* s = symbol_newcst_string(&symbol_table, str);
+			$$.code = quad_gen(&next_quad, PRINTF_, s, NULL, NULL);
+		}
+	| PRINT '(' expr ')'
+		{
+			printf("stmt -> PRINT ( expr )\n");
+			$$.code = quad_gen(&next_quad, PRINT_, $3.result, NULL, NULL);
 		}
 	;
 
 arr:
-	'[' NUM ']'														{}
-	| '[' NUM ']' arr												{}
+	'[' NUM_INT ']'														{}
+	| '[' NUM_INT ']' arr												{}
 	;
 
 expr:	
 	expr PLUS expr
 		{
 			printf("expr -> expr + expr\n");
-			$$.result = symbol_newtemp(&symbol_table);
+			$$.result = symbol_newtemp(&symbol_table, INT_);
 			$$.code = $1.code;
 			quad_add(&$$.code, $3.code);
 			quad_add(&$$.code, quad_gen(&next_quad, ADD_, $1.result, $3.result, $$.result));
@@ -279,7 +300,7 @@ expr:
 	| expr MIN expr
 		{
 			printf("expr -> expr - expr\n");
-			$$.result = symbol_newtemp(&symbol_table);
+			$$.result = symbol_newtemp(&symbol_table, INT_);
 			$$.code = $1.code;
 			quad_add(&$$.code, $3.code);
 			quad_add(&$$.code, quad_gen(&next_quad, MIN_, $1.result, $3.result, $$.result));
@@ -287,7 +308,7 @@ expr:
 	| expr DIV expr
 		{
 			printf("expr -> expr - expr\n");
-			$$.result = symbol_newtemp(&symbol_table);
+			$$.result = symbol_newtemp(&symbol_table, INT_);
 			$$.code = $1.code;
 			quad_add(&$$.code, $3.code);
 			quad_add(&$$.code, quad_gen(&next_quad, DIV_, $1.result, $3.result, $$.result));
@@ -295,7 +316,7 @@ expr:
 	| expr MUL expr
 		{
 			printf("expr -> expr * expr\n");
-			$$.result = symbol_newtemp(&symbol_table);
+			$$.result = symbol_newtemp(&symbol_table, INT_);
 			$$.code = $1.code;
 			quad_add(&$$.code, $3.code);
 			quad_add(&$$.code, quad_gen(&next_quad, MUL_, $1.result, $3.result, $$.result));
@@ -320,18 +341,26 @@ expr:
 			// Find or create the named symbol to hold the identifier value
 			$$.result = symbol_lookup(&symbol_table, $1);
 			if($$.result == NULL)
-				$$.result = symbol_add(&symbol_table, $1);
+				$$.result = symbol_add(&symbol_table, $1, INT_);
 			// No code is generated for this
 			$$.code = NULL;
 
 		}	
-	| NUM
+	| NUM_INT
 		{
-			printf("expr -> NUM (%d)\n", $1);
+			printf("expr -> NUM_INT (%d)\n", $1);
 			// Create the tempory symbol to hold the constant value
-			$$.result = symbol_newcst(&symbol_table, $1);
+			$$.result = symbol_newcst_int(&symbol_table, $1);
 			// No code is generated for this
 			$$.code = NULL;
+		}
+	| NUM_FLOAT
+		{
+			printf("expr -> NUM_FLOAT (%f)\n", $1);
+			// Create the tempory symbol to hold the constant value
+			$$.result = symbol_newcst_float(&symbol_table, $1);
+			// No code is generated for this
+			$$.code = NULL;	
 		}
 	;
 
@@ -438,7 +467,7 @@ condition:
 
 tag:
 	{
-		$$ = symbol_newcst(&symbol_table, next_quad);
+		$$ = symbol_newcst_int(&symbol_table, next_quad);
 	}
 	;
 

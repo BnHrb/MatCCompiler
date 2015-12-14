@@ -18,10 +18,11 @@ void symbol_free(Symbol* s) {
 	}
 }
 
-Symbol* symbol_add(Symbol** tds, char* id) {
+Symbol* symbol_add(Symbol** tds, char* id, symbol_type type) {
 	if(*tds == NULL) {
 		*tds = symbol_alloc();
 		(*tds)->id = strdup(id);
+		(*tds)->type = type;
 		return *tds;
 	}
 	else {
@@ -30,23 +31,37 @@ Symbol* symbol_add(Symbol** tds, char* id) {
 			tmp = tmp->next;
 		tmp->next = symbol_alloc();
 		tmp->next->id = strdup(id);
+		tmp->next->type = type;
 		return tmp->next;
 	}
 }
 
-Symbol* symbol_newtemp(Symbol** tds) {
+Symbol* symbol_newtemp(Symbol** tds, symbol_type type) {
 	static int nb_symbol = 0;
 	char temp_name[SYMBOL_MAX_NAME];
 	snprintf(temp_name, SYMBOL_MAX_NAME, "temp_%d", nb_symbol);
 	nb_symbol++;
-	return symbol_add(tds, temp_name);
+	return symbol_add(tds, temp_name, type);
 }
 
-Symbol* symbol_newcst(Symbol** tds, int cst) {
-	Symbol* new = symbol_newtemp(tds);
+Symbol* symbol_newcst_int(Symbol** tds, int cst) {
+	Symbol* new = symbol_newtemp(tds, INT_);
 	new->isConstant = true;
-	new->type = INT_;
 	new->value.int_v = cst;
+	return new;
+}
+
+Symbol* symbol_newcst_float(Symbol** tds, float cst) {
+	Symbol* new = symbol_newtemp(tds, FLOAT_);
+	new->isConstant = true;
+	new->value.float_v = cst;
+	return new;
+}
+
+Symbol* symbol_newcst_string(Symbol** tds, char* cst) {
+	Symbol* new = symbol_newtemp(tds, STRING_);
+	new->isConstant = true;
+	new->value.string_v = strdup(cst);
 	return new;
 }
 

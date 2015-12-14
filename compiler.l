@@ -35,10 +35,11 @@ type		"int"|"float"|"matrix"
 "printf"		{ return PRINTF; }
 "print"			{ return PRINT; }
 ","				{ return yytext[0]; }
-{type}			{ return TYPE; }
+{type}			{ yylval.string = strdup(yytext); return TYPE; }
 {string} 		{ yylval.string = strdup(yytext); return STRING; }
 {identifier}	{ yylval.string = strdup(yytext); return ID; }
-{number} 		{ yylval.value = atoi(yytext); return NUM; }
+{number} 		{ yylval.value_int = atoi(yytext); return NUM_INT; }
+{floatnumber} 	{ yylval.value_float = atof(yytext); return NUM_FLOAT; }
 [(){}\[\];<>]	{ return yytext[0]; }
 [ \t\n]			{}
 .				{ printf("Caractère inconnu %s\n", yytext); }
