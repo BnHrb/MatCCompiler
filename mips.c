@@ -4,7 +4,7 @@ int translate_to_mips(FILE *output, Symbol* symbol_table, Quad* code) {
 	fprintf(output, "\t.data\n");
 	while(symbol_table != NULL){
 		if(symbol_table->isConstant)
-			fprintf(output, "%s:\t.word %d\n", symbol_table->id, symbol_table->value);
+			fprintf(output, "%s:\t.word %d\n", symbol_table->id, symbol_table->value.int_v);
 		symbol_table = symbol_table->next;
 	}
 	fprintf(output, "\t.globl main\n");

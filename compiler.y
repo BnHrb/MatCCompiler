@@ -469,7 +469,7 @@ int main(int argc, char* argv[]) {
 
 	yyparse();
 
-	//translate_to_mips(output, symbol_table, code);
+	translate_to_mips(output, symbol_table, code);
 
 	return 0;
 }
