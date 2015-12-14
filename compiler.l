@@ -11,6 +11,7 @@
 identifier	[a-zA-Z_]+[0-9a-zA-Z_]*
 number 		[0-9]+
 floatnumber {number}\.{number}
+comment 	"/*"([^*]*[*][^*/])*[^*]*[*]+"/"
 string     	\"(\\.|[^\"\\])*\"
 type		"int"|"float"|"matrix"
 
@@ -18,6 +19,8 @@ type		"int"|"float"|"matrix"
 
 "="				{ return ASSIGN; }
 "=="			{ return EQUAL; }
+">="			{ return INFEQ; }
+"<="			{ return SUPEQ; }
 "while" 		{ return WHILE; }
 "if"			{ return IF; }
 "else"			{ return ELSE; }
@@ -42,6 +45,7 @@ type		"int"|"float"|"matrix"
 {floatnumber} 	{ yylval.value_float = atof(yytext); return NUM_FLOAT; }
 [(){}\[\];<>]	{ return yytext[0]; }
 [ \t\n]			{}
+{comment} 		{}
 .				{ printf("Caractère inconnu %s\n", yytext); }
 
 %%

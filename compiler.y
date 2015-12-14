@@ -39,7 +39,7 @@
 %token <string> ID STRING TYPE
 %token <value_int> NUM_INT
 %token <value_float> NUM_FLOAT
-%token EQUAL
+%token EQUAL SUPEQ INFEQ
 %token ASSIGN
 %token WHILE
 %token IF ELSE
@@ -56,6 +56,7 @@
 %type <code_condition> condition
 %type <code_expression> stmt
 %type <code_expression> stmtlist
+%type <code_expression> structure
 %type <label> tag
 
 %left OR
@@ -120,16 +121,27 @@ function:
 
 stmtlist:
 	stmtlist stmt ';'
-	{
-		printf("stmtlist -> stmtlist stmt\n");
-		$$.code = $1.code;
-		quad_add(&$$.code, $2.code);
-	}
+		{
+			printf("stmtlist -> stmtlist stmt\n");
+			$$.code = $1.code;
+			quad_add(&$$.code, $2.code);
+		}
 	| stmt ';'
-	{
-		printf("stmtlist -> stmt\n");
-		$$.code = $1.code;
-	}
+		{
+			printf("stmtlist -> stmt\n");
+			$$.code = $1.code;
+		}
+	| stmtlist structure
+		{
+			printf("stmtlist -> stmtlist structure\n");
+			$$.code = $1.code;
+			quad_add(&$$.code, $2.code);			
+		}
+	| structure
+		{
+			printf("stmtlist -> structure\n");
+			$$.code = $1.code;		
+		}
 	;
 
 stmt:
@@ -191,7 +203,29 @@ stmt:
 			Symbol* cst_add = symbol_newcst_int(&symbol_table, 1);
 			$$.code = quad_gen(&next_quad, MIN_, s, cst_add, s);			
 		}
-	| WHILE '(' condition ')' '{' stmtlist '}'						{}
+	| RETURN expr 
+		{
+			printf("stmt -> RETURN expr\n");
+			$$.code = quad_gen(&next_quad, RETURN_, $2.result, NULL, NULL);
+		}
+	| PRINTF '(' STRING ')'
+		{
+			printf("stmt -> PRINTF (%s)\n", $3);
+			char * str = $3;
+			str++;
+			str[strlen(str)-1] = 0;
+			Symbol* s = symbol_newcst_string(&symbol_table, str);
+			$$.code = quad_gen(&next_quad, PRINTF_, s, NULL, NULL);
+		}
+	| PRINT '(' expr ')'
+		{
+			printf("stmt -> PRINT ( expr )\n");
+			$$.code = quad_gen(&next_quad, PRINT_, $3.result, NULL, NULL);
+		}
+	;
+
+structure:
+	WHILE '(' condition ')' '{' stmtlist '}'						{}
 	| IF '(' condition ')' '{' stmtlist '}'
 		{
 			printf("stmt -> if ( condition ) { stmtlist }\n");
@@ -262,26 +296,6 @@ stmt:
 			quad_add(&$$.code, $10.code);
 			quad_add(&$$.code, end);	
 		}
-	| RETURN expr 
-		{
-			printf("stmt -> RETURN expr\n");
-			$$.code = quad_gen(&next_quad, RETURN_, $2.result, NULL, NULL);
-		}
-	| PRINTF '(' STRING ')'
-		{
-			printf("stmt -> PRINTF (%s)\n", $3);
-			char * str = $3;
-			str++;
-			str[strlen(str)-1] = 0;
-			Symbol* s = symbol_newcst_string(&symbol_table, str);
-			$$.code = quad_gen(&next_quad, PRINTF_, s, NULL, NULL);
-		}
-	| PRINT '(' expr ')'
-		{
-			printf("stmt -> PRINT ( expr )\n");
-			$$.code = quad_gen(&next_quad, PRINT_, $3.result, NULL, NULL);
-		}
-	;
 
 arr:
 	'[' NUM_INT ']'														{}
@@ -397,12 +411,40 @@ condition:
 			$$.truelist = quad_list_new(goto_true);
 			$$.falselist = quad_list_new(goto_false);
 		}
+	| expr INFEQ expr
+		{
+			printf("condition -> expr <= expr\n");
+			Quad* goto_true;
+			Quad* goto_false;
+			goto_true = quad_gen(&next_quad, INFEQ_, $1.result, $3.result, NULL);
+			goto_false = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
+			$$.code = $1.code;
+			quad_add(&$$.code, $3.code);
+			quad_add(&$$.code, goto_true);
+			quad_add(&$$.code, goto_false);
+			$$.truelist = quad_list_new(goto_true);
+			$$.falselist = quad_list_new(goto_false);
+		}
 	| expr '>' expr
 		{
 			printf("condition -> expr > expr\n");
 			Quad* goto_true;
 			Quad* goto_false;
 			goto_true = quad_gen(&next_quad, SUP_, $1.result, $3.result, NULL);
+			goto_false = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
+			$$.code = $1.code;
+			quad_add(&$$.code, $3.code);
+			quad_add(&$$.code, goto_true);
+			quad_add(&$$.code, goto_false);
+			$$.truelist = quad_list_new(goto_true);
+			$$.falselist = quad_list_new(goto_false);
+		}
+	| expr SUPEQ expr
+		{
+			printf("condition -> expr >= expr\n");
+			Quad* goto_true;
+			Quad* goto_false;
+			goto_true = quad_gen(&next_quad, SUPEQ_, $1.result, $3.result, NULL);
 			goto_false = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
 			$$.code = $1.code;
 			quad_add(&$$.code, $3.code);

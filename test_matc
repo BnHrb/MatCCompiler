@@ -2,11 +2,15 @@ int main() {
 	int a=5; 
 	float b;
 
-	if(a>6 && a<12)
+	if(a>=6 && a<12)
 	{
 		a = a+a;
-	};
+	}
+	else {
+		int c = 13;
+	}
 
+	/* commentaire */
 	a = 100;
 	b = 103.1337;
 
