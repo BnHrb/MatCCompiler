@@ -1,22 +1,22 @@
 int main() {
-	int a=5; 
-	float b;
+	int variable_a=5; 
+	float variable_b;
 
-	if(a>=6 && a<12)
+	if(variable_a>=6 && variable_a<12)
 	{
-		a = a+a;
+		variable_a = variable_a+variable_a;
 	}
 	else {
-		int c = 13;
+		int variable_c = 13;
 	}
 
 	/* commentaire */
-	a = 100;
-	b = 103.1337;
+	variable_a = 100;
+	variable_b = 103.1337;
 
-	int d[2][10] = {1,2,3};
+	int variable_d[2][10] = {1,2,3};
 
 	printf("hello");
 
-	print(a);
+	print(variable_a);
 }
