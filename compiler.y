@@ -179,8 +179,18 @@ stmt:
 			$$.code = $4.code;
 			quad_add(&$$.code, quad_gen(&next_quad, ASSIGN_, $4.result, NULL, s));
 		}
-	| TYPE ID arr													{}
-	| TYPE ID arr ASSIGN expr										{}
+	| TYPE ID arr
+		{
+			printf("stmt -> TYPE ID (%s) arr\n", $2);	
+		}
+	| ID arr ASSIGN expr 
+		{
+
+		}
+	| TYPE ID arr ASSIGN '{'arr_init'}'
+		{
+
+		}
 	| ID "++"														
 		{
 			printf("stmt -> ID (%s) ++\n", $1);
@@ -223,6 +233,10 @@ stmt:
 			$$.code = quad_gen(&next_quad, PRINT_, $3.result, NULL, NULL);
 		}
 	;
+
+arr_init :  NUM_INT ',' arr_init								{}
+			| NUM_INT											{}
+			;
 
 structure:
 	WHILE '(' condition ')' '{' stmtlist '}'						{}
@@ -298,8 +312,14 @@ structure:
 		}
 
 arr:
-	'[' NUM_INT ']'														{}
-	| '[' NUM_INT ']' arr												{}
+	'[' NUM_INT ']'
+		{	
+			printf("arr -> [ NUM_INT ]\n");
+		}
+	| '[' NUM_INT ']' arr
+		{
+			printf("arr -> [ NUM_INT ] arr\n");
+		}
 	;
 
 expr:	
@@ -342,7 +362,6 @@ expr:
 	// 		$$.code = $2.code;
 	// 		quad_add(&$$.code, quad_gen(&next_quad, MIN_, NULL, $2.result, $$.result));
 	// 	}
-	| '{' innerlist '}'												{}
 	| '(' expr ')'
 		{
 			printf("expr -> ( expr )\n");
@@ -377,10 +396,6 @@ expr:
 			$$.code = NULL;	
 		}
 	;
-
-innerlist : expr ',' expr											{}
-			| expr													{}
-			;
 
 condition:
 	expr EQUAL expr 

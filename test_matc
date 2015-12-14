@@ -14,6 +14,8 @@ int main() {
 	a = 100;
 	b = 103.1337;
 
+	int d[2][10] = {1,2,3};
+
 	printf("hello");
 
 	print(a);
