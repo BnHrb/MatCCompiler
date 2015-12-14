@@ -29,7 +29,7 @@ Symbol* symbol_add(Symbol** tds, char* id) {
 			tmp = tmp->next;
 		tmp->next = symbol_alloc();
 		tmp->next->id = strdup(id);
-		return tmp;
+		return tmp->next;
 	}
 }
 

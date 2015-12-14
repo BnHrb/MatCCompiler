@@ -18,8 +18,6 @@ typedef struct quad{
 	Symbol* arg2;
 	Symbol* res;
 	struct quad* next;
-
-	void  (*quad_print)(struct quad*);
 }Quad;
 
 //               v-- Operator in one character
@@ -27,4 +25,5 @@ Quad* quad_gen  (int*, int, Symbol*, Symbol*, Symbol*);
 void  quad_add  (Quad**, Quad*);
 void  quad_free (Quad*);
 char* get_op_name(int);
+void  quad_print(Quad*);
 #endif /*QUAD_H*/

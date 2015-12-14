@@ -1,6 +1,6 @@
 #include "quad.h" 	//Includes in the .h
 
-static void  quad_print(Quad* q) //print
+void  quad_print(Quad* q) //print
 {
 	printf("Quads: \n");
 	while(q != NULL)
@@ -37,8 +37,7 @@ Quad* quad_gen(int* label, int op, Symbol *arg1, Symbol *arg2, Symbol *Res)
 	n->arg2 = arg2;
 	n->res = Res;
 	n->next = NULL;
-
-	n->quad_print = quad_print;
+	
 	return n;
 }
 

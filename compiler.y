@@ -14,6 +14,7 @@
 	void yyerror(char*);
 
 	Symbol* symbol_table = NULL;
+	Symbol* test = NULL;
 	Quad* code = NULL;
 	int next_quad = 0;
 //int main() { matrix A[2][2]={{12,27},{64,42}}; }
@@ -56,6 +57,8 @@
 %type <code_condition> function
 %type <code_expression> expr
 %type <code_condition> condition
+%type <code_condition> stmt
+%type <code_condition> stmtlist
 %type <label> tag
 
 %left OR
@@ -102,20 +105,51 @@ axiom:
 			//quad_list_print($1.falselist);
 			//code->quad_print(code);
 
+			code = $1.code;
+
+			//quad_print(code);
+
+			// symbol_add(&test, "a");
+			// symbol_add(&test, "b");
+			// symbol_newcst(&test, 10);
+			// symbol_newtemp(&test);
+
+			//symbol_table_print(&test);
+
+			symbol_table_print(&symbol_table);
+
 			return 0;
 		}
 
 function:
-	TYPE ID'('')' '{' stmtlist '}'									{}
+	TYPE ID'('')' '{' stmtlist '}'
+	{
+		printf("function -> TYPE ID () { stmtlist }\n");
+		$$.code = $6.code;
+	}
 
 stmtlist:
-	stmtlist stmt ';'												{}
-	| stmt ';'														{}
+	stmtlist stmt ';'
+	{
+		printf("stmtlist -> stmtlist stmt\n");
+		$$.code = $2.code;
+	}
+	| stmt ';'
+	{
+		printf("stmtlist -> stmt\n");
+		$$.code = $1.code;
+	}
 	;
 
 stmt:
-	ID ASSIGN expr													{}
-	| TYPE ID 														{}
+	ID ASSIGN expr
+		{
+			$$.code = $3.code;
+		}
+	| TYPE ID 
+		{
+
+		}
 	| TYPE ID ASSIGN expr 											{}
 	| TYPE ID arr													{}
 	| TYPE ID arr ASSIGN expr										{}
@@ -145,16 +179,10 @@ stmt:
 
 			symbol_newtemp(&symbol_table);
 
-			code = $3.code;
-			quad_add(&code, is_true);
-			quad_add(&code, jump);
-			quad_add(&code, is_false);
-
-			quad_list_print($3.truelist);
-			quad_list_print($3.falselist);
-			code->quad_print(code);
-
-			symbol_table_print(&symbol_table);		
+			$$.code = $3.code;
+			quad_add(&$$.code, is_true);
+			quad_add(&$$.code, jump);
+			quad_add(&$$.code, is_false);
 		}
 	| IF '(' condition ')' '{' stmtlist '}' ELSE '{' stmtlist '}'	{}
 	| RETURN expr													{}

@@ -4,7 +4,7 @@ void quad_list_print (Quad_list *ql)
 {
 	puts((ql != NULL?"List of quads:":"Quad list empty."));
 	while(ql != NULL){
-		ql->q->quad_print(ql->q);
+		quad_print(ql->q);
 		ql = ql->next;
 	}
 }
