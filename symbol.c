@@ -18,20 +18,48 @@ void symbol_free(Symbol* s) {
 	}
 }
 
+// Symbol* symbol_add(Symbol** tds, char* id, symbol_type type) {
+// 	if(*tds == NULL) {
+// 		char *temp=malloc(sizeof(char)*strlen(id));
+// 		strcpy(temp,"var_");
+// 		*tds = symbol_alloc();
+// 		(*tds)->id = strdup(id);
+// 		(*tds)->type = type;
+// 		return *tds;
+// 	}
+// 	else {
+// 		Symbol* tmp = *tds;
+// 		while(tmp->next != NULL)
+// 			tmp = tmp->next;
+// 		tmp->next = symbol_alloc();
+// 		tmp->next->id = strdup(id);
+// 		tmp->next->type = type;
+// 		return tmp->next;
+// 	}
+// }
+
 Symbol* symbol_add(Symbol** tds, char* id, symbol_type type) {
 	if(*tds == NULL) {
+		char *temp=malloc(sizeof(char)*strlen(id));
+		strcpy(temp,"var_");
+		temp = strcat(temp,id);
 		*tds = symbol_alloc();
-		(*tds)->id = strdup(id);
+		(*tds)->id = strdup(temp);
 		(*tds)->type = type;
+		free(temp);
 		return *tds;
 	}
 	else {
 		Symbol* tmp = *tds;
+		char *temp=malloc(sizeof(char)*strlen(id));
+		strcpy(temp,"var_");
+		temp = strcat(temp,id);
 		while(tmp->next != NULL)
 			tmp = tmp->next;
 		tmp->next = symbol_alloc();
-		tmp->next->id = strdup(id);
+		tmp->next->id = strdup(temp);
 		tmp->next->type = type;
+		free(temp);
 		return tmp->next;
 	}
 }
@@ -67,11 +95,15 @@ Symbol* symbol_newcst_string(Symbol** tds, char* cst) {
 
 Symbol* symbol_lookup(Symbol** tds, char* id) {
 	Symbol* tmp = *tds;
+	char *temp_id=malloc(sizeof(char)*strlen(id));
+	strcpy(temp_id,"var_");
+	temp_id = strcat(temp_id,id);
 	while(tmp != NULL) {
-		if(strcmp(tmp->id, id) == 0)
+		if(strcmp(tmp->id, temp_id) == 0)
 			break;
 		tmp = tmp->next;
 	}
+	free(temp_id);
 	return tmp;
 }
 

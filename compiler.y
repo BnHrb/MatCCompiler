@@ -452,6 +452,11 @@ expr:
 			$$.code = NULL;
 
 		}	
+	| ID arr 
+		{
+			printf("expr -> ID (%s) arr\n", $1);
+			$$.result = symbol_lookup(&symbol_table, $1);
+		}
 	| NUM_INT
 		{
 			printf("expr -> NUM_INT (%d)\n", $1);
