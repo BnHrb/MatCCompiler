@@ -47,9 +47,6 @@ void quad_free(Quad* q)
 	Quad *p;
 	while(q != NULL){
 		p = q->next;
-		symbol_free(q->arg1);
-		symbol_free(q->arg2);
-		symbol_free(q->res);
 		free(q);
 		q = p;
 	}

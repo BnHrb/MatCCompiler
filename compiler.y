@@ -743,5 +743,8 @@ int main(int argc, char* argv[]) {
 
 	translate_to_mips(output, symbol_table, code);
 
+	symbol_free(symbol_table);
+	quad_free(code);	
+
 	return 0;
 }
