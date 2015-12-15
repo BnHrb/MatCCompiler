@@ -36,6 +36,10 @@
 		int x;
 		int y;
 	} code_array;
+	struct {
+		int size;
+		int* num;
+	} code_list_num;
 }
 
 %token <string> ID STRING TYPE
@@ -60,6 +64,7 @@
 %type <code_expression> stmtlist
 %type <code_expression> structure
 %type <code_array> arr
+%type <code_list_num> arr_init
 %type <label> tag
 
 %left OR
@@ -171,15 +176,37 @@ stmt:
 			
 			s->dim.x = $3.x;
 			s->dim.y = $3.y;
-			quad_add(&$$.code, quad_gen(&next_quad, INIT_ARRAY_, s, NULL, NULL));
+			$$.code = quad_gen(&next_quad, INIT_ARRAY_, s, NULL, NULL);
 		}
 	| ID arr ASSIGN expr 
 		{
-
+			printf("stmt -> ID (%s) arr = expr\n", $1);
+			Symbol* s = symbol_lookup(&symbol_table, $1);
+			if(s == NULL) {
+				printf("Error : variable %s doesn't exist.\n", $1);
+				return -1;
+			}
+			Symbol* index = symbol_newcst_int(&symbol_table, ($2.x * s->dim.y + $2.y));
+			$$.code = quad_gen(&next_quad, INDEX_ARRAY_, s, index, NULL);
+			quad_add(&$$.code, quad_gen(&next_quad, ASSIGN_, $4.result, NULL, s));
 		}
 	| TYPE ID arr ASSIGN '{'arr_init'}'
 		{
+			printf("stmt -> TYPE ID (%s) arr = { arr_init }\n", $2);
+			Symbol* s = symbol_add(&symbol_table, $2, ARRAY_);
+			s->dim.x = $3.x;
+			s->dim.y = $3.y;
 
+			$$.code = quad_gen(&next_quad, INIT_ARRAY_, s, NULL, NULL);
+
+			int i;
+			Symbol* index = NULL;
+			for(i=0; i<$3.x+($3.y*$3.x); i++) {
+				index = symbol_newcst_int(&symbol_table, i);
+				quad_add(&$$.code, quad_gen(&next_quad, INDEX_ARRAY_, s, index, NULL));
+				//printf("==========>>> %d\n", $6.num[i]);
+				quad_add(&$$.code, quad_gen(&next_quad, ASSIGN_, $6.num[i], NULL, s));				
+			}
 		}
 	| ID "++"														
 		{
@@ -224,8 +251,20 @@ stmt:
 		}
 	;
 
-arr_init :  NUM_INT ',' arr_init								{}
-			| NUM_INT											{}
+arr_init :  NUM_INT ',' arr_init
+				{
+					$$.size = $3.size + 1;
+					$$.num = malloc(sizeof(int)*$$.size);
+
+					memcpy($$.num, &$1, sizeof(int));
+					memcpy($$.num+1, $3.num, $3.size*sizeof(int));
+				}
+			| NUM_INT 
+				{
+					$$.num = malloc(sizeof(int));
+					$$.size = 1;
+					memcpy($$.num, &$1, sizeof(int));
+				}
 			;
 
 structure:
