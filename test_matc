@@ -16,7 +16,8 @@ int main() {
 
 	int variable_d[2][10] = {1,2,3};
 
-	printf("hello");
+	printf("hello\n");
 
 	print(variable_a);
+	printf("\n");
 }
