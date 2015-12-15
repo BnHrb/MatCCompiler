@@ -5,7 +5,7 @@
 	#include "symbol.h"
 	#include "quad.h"
 	#include "quad_list.h"
-	//#include "mips.h"
+	#include "mips.h"
 
 	#define YYDEBUG 0
 
@@ -33,9 +33,12 @@
 		struct quad_list* falselist; 
 	} code_condition;
 	struct {
-		int x;
-		int y;
+		struct symbol* x;
+		struct symbol* y;
 	} code_array;
+	struct {
+		struct symbol* list_num;
+	} code_list_num;
 }
 
 %token <string> ID STRING TYPE
@@ -45,11 +48,11 @@
 %token ASSIGN
 %token WHILE FOR
 %token IF ELSE
+%token INCR DECR
 %token PLUS MIN MUL DIV MIN_UNAIRE
 %token OP_UNAIRE
-%token RETURN PRINTF PRINT
-%token TRUE
-%token FALSE
+%token RETURN PRINTF PRINT PRINTMAT
+%token TRUE FALSE
 %token OR AND NOT
 
 %type <code_expression> axiom
@@ -60,6 +63,7 @@
 %type <code_expression> stmtlist
 %type <code_expression> structure
 %type <code_array> arr
+%type <code_list_num> arr_init
 %type <label> tag
 
 %left OR
@@ -96,8 +100,7 @@ function:
 		printf("function -> TYPE (%s) ID (%s) () { stmtlist }\n", $1,  $2);
 		$$.code = $6.code;
 	}
-	|
-	TYPE ID'('')' '{' '}'
+	| TYPE ID'('')' '{' '}'
 	{
 		printf("function -> TYPE (%s) ID (%s) () { }\n", $1,  $2);
 	}
@@ -165,23 +168,45 @@ stmt:
 	| TYPE ID arr
 		{
 			printf("stmt -> TYPE ID (%s) arr\n", $2);
-			Symbol* s = NULL;
 			
-			s = symbol_add(&symbol_table, $2, ARRAY_);
+			Symbol* s = symbol_add(&symbol_table, $2, ARRAY_);
 			
 			s->dim.x = $3.x;
 			s->dim.y = $3.y;
-			quad_add(&$$.code, quad_gen(&next_quad, INIT_ARRAY_, s, NULL, NULL));
+			$$.code = quad_gen(&next_quad, INIT_ARRAY_, s, NULL, NULL);
 		}
 	| ID arr ASSIGN expr 
 		{
-
+			printf("stmt -> ID (%s) arr = expr\n", $1);
+			Symbol* s = symbol_lookup(&symbol_table, $1);
+			if(s == NULL) {
+				printf("Error : variable %s doesn't exist.\n", $1);
+				return -1;
+			}
+			$$.code = quad_gen(&next_quad, INDEX_ARRAY_X_, s, $2.x, NULL);
+			if($2.y != NULL)
+				$$.code = quad_gen(&next_quad, INDEX_ARRAY_Y_, s, $2.y, NULL);
+			quad_add(&$$.code, quad_gen(&next_quad, ASSIGN_, $4.result, NULL, s));
 		}
-	| TYPE ID arr ASSIGN '{'arr_init'}'
+	| TYPE ID arr ASSIGN '{' arr_init '}'
 		{
+			printf("stmt -> TYPE ID (%s) arr = { arr_init }\n", $2);
+			// Symbol* s = symbol_add(&symbol_table, $2, ARRAY_);
+			// s->dim.x = $3.x;
+			// s->dim.y = $3.y;
 
+			// $$.code = quad_gen(&next_quad, INIT_ARRAY_, s, NULL, NULL);
+
+			// int i;
+			// Symbol* index = NULL;
+			// for(i=0; i<$3.x+($3.y*$3.x); i++) {
+			// 	index = symbol_newcst_int(&symbol_table, i);
+			// 	quad_add(&$$.code, quad_gen(&next_quad, INDEX_ARRAY_, s, index, NULL));
+			// 	//printf("==========>>> %d\n", $6.num[i]);
+			// 	quad_add(&$$.code, quad_gen(&next_quad, ASSIGN_, $6.num[i], NULL, s));				
+			// }
 		}
-	| ID "++"														
+	| ID INCR														
 		{
 			printf("stmt -> ID (%s) ++\n", $1);
 			Symbol* s = symbol_lookup(&symbol_table, $1);
@@ -192,7 +217,7 @@ stmt:
 			Symbol* cst_add = symbol_newcst_int(&symbol_table, 1);
 			$$.code = quad_gen(&next_quad, ADD_, s, cst_add, s);
 		}
-	| ID "--"														
+	| ID DECR														
 		{
 			printf("stmt -> ID (%s) --\n", $1);
 			Symbol* s = symbol_lookup(&symbol_table, $1);
@@ -222,11 +247,43 @@ stmt:
 			printf("stmt -> PRINT ( expr )\n");
 			$$.code = quad_gen(&next_quad, PRINT_, $3.result, NULL, NULL);
 		}
+	| PRINTMAT '(' expr ')'
+		{
+			printf("stmt -> PRINTMAT ( expr )\n");
+			//$$.code = quad_gen(&next_quad, PRINT_, $3.result, NULL, NULL);
+		}
 	;
 
-arr_init :  NUM_INT ',' arr_init								{}
-			| NUM_INT											{}
-			;
+arr_init : 
+	'{' arr_expr_list '}' ',' arr_init
+		{
+
+		}
+	| '{' arr_expr_list '}'
+		{
+
+		}
+	|	arr_expr_list
+		{
+
+		}
+
+
+arr_expr_list :  
+	expr ',' arr_expr_list
+		{
+			// $$.size = $3.size + 1;
+			// $$.num = malloc(sizeof(int)*$$.size);
+
+			// memcpy($$.num, &$1, sizeof(int));
+			// memcpy($$.num+1, $3.num, $3.size*sizeof(int));
+		}
+	| expr 
+		{
+			// $$.num = malloc(sizeof(int));
+			// $$.size = 1;
+			// memcpy($$.num, &$1, sizeof(int));
+		}
 
 structure:
 	FOR '('stmt ';' condition ';' stmt')' '{' stmtlist '}'
@@ -396,17 +453,17 @@ structure:
 		}
 
 arr:
-	'[' NUM_INT ']'
-		{	
-			printf("arr -> [ NUM_INT ]\n");
-			$$.x = $2;
+	'[' expr ']'
+		{
+			printf("arr -> [ expr ]\n");
+			$$.x = $2.result;
 			$$.y = 0;
 		}
-	| '[' NUM_INT ']' '[' NUM_INT ']'
+	| '[' expr ']' '[' expr ']'
 		{
-			printf("arr -> [ NUM_INT ] [ NUM_INT ]\n");
-			$$.x = $2;
-			$$.y = $5;
+			printf("arr -> [ expr ] [ expr ]\n");
+			$$.x = $2.result;
+			$$.y = $5.result;
 		}
 	;
 
@@ -429,7 +486,7 @@ expr:
 		}
 	| expr DIV expr
 		{
-			printf("expr -> expr - expr\n");
+			printf("expr -> expr / expr\n");
 			$$.result = symbol_newtemp(&symbol_table, INT_);
 			$$.code = $1.code;
 			quad_add(&$$.code, $3.code);
@@ -467,6 +524,17 @@ expr:
 			$$.code = NULL;
 
 		}	
+	| '~' ID 
+		{
+			printf("expr -> ~ ID (%s)\n", $2);
+			// // Find or create the named symbol to hold the identifier value
+			// $$.result = symbol_lookup(&symbol_table, $1);
+			// if($$.result == NULL)
+			// 	$$.result = symbol_add(&symbol_table, $1, INT_);
+			// // No code is generated for this
+			// $$.code = NULL;
+
+		}	
 	| ID arr 
 		{
 			printf("expr -> ID (%s) arr\n", $1);
@@ -491,7 +559,7 @@ expr:
 	;
 
 condition:
-	expr 
+	expr
 		{
 			printf("condition -> expr\n");
 			Quad* goto_true;
@@ -673,7 +741,10 @@ int main(int argc, char* argv[]) {
 
 	yyparse();
 
-	//translate_to_mips(output, symbol_table, code);
+	translate_to_mips(output, symbol_table, code);
+
+	symbol_free(symbol_table);
+	quad_free(code);	
 
 	return 0;
 }

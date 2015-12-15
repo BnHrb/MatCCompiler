@@ -20,8 +20,8 @@ typedef enum {
 } symbol_type;
 
 typedef struct dimension {
-	int x;
-	int y;
+	struct symbol* x;
+	struct symbol* y;
 } symbol_dim;
 
 typedef struct symbol {

@@ -7,8 +7,8 @@ Symbol* symbol_alloc() {
 	new->value.null_v = NULL;
 	new->next = NULL;
 	new->isConstant = false;
-	new->dim.x = 0;
-	new->dim.y = 0;
+	new->dim.x = NULL;
+	new->dim.y = NULL;
 	return new;
 }
 
@@ -117,7 +117,7 @@ void symbol_print(Symbol* s, bool header) {
 			printf("%s\t\t%s\t\t%s\n", s->id, (s->isConstant?"True":"False"), "n/a");
 			break;
 		case ARRAY_:
-			printf("%s\t\t%s\t\tx:%dy:%d\n", s->id, (s->isConstant?"True":"False"), s->dim.x, s->dim.y);
+			printf("%s\t\t%s\t\tx:%s y:%s\n", s->id, (s->isConstant?"True":"False"), s->dim.x->id, s->dim.y == NULL? "NULL": s->dim.y->id);
 			break;
 	}
 }
