@@ -150,7 +150,8 @@ int translate_to_mips(FILE *output, Symbol* symbol_table, Quad* code) {
 					fprintf(output, "\tsw $t0, %s\n", code->res->id);
 					break;
 					case FLOAT_:
-					fprintf(output, "\tli.s $f0, %f\n", code->arg1->value.float_v);
+					//fprintf(output, "\tla $a0, %s\n",code->arg1->id);
+					fprintf(output, "\tl.s $f0, %s\n",code->arg1->id);
 					fprintf(output, "\ts.s $f0, %s\n", code->res->id);
 					break;
 					default:break;
@@ -172,11 +173,14 @@ int translate_to_mips(FILE *output, Symbol* symbol_table, Quad* code) {
 				switch(code->arg1->type){
 					case INT_:
 					fprintf(output, "\tli $v0, 1\n");
-					fprintf(output, "\tla $a0, %s\n",code->arg1->id);
+					fprintf(output, "\tsw $t2, %s\n", code->arg1->id);
+					fprintf(output, "\tmove $a0, $t2\n");
 					break;
 					case FLOAT_:
 					fprintf(output, "\tli $v0, 2\n");
-					fprintf(output, "\tla $f12, %s\n",code->arg1->id);
+					fprintf(output, "\tla $a0, %s\n",code->arg1->id);
+					fprintf(output, "\tl.s $f0, ($a0)\n");
+					fprintf(output, "\tmov.s $f12, $f0\n");
 					break;
 					case STRING_:
 					fprintf(output, "\tli $v0, 4\n");
