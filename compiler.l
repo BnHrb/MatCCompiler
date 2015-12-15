@@ -11,7 +11,7 @@
 identifier	[a-zA-Z_]+[0-9a-zA-Z_]*
 number 		[0-9]+
 floatnumber {number}\.{number}
-comment 	"/*"([^*]*[*][^*/])*[^*]*[*]+"/"
+comment 	"/*"([^*]*[*][^*/])*[^*]*[*]+"/"|\/\/.*
 string     	\"(\\.|[^\"\\])*\"
 type		"int"|"float"|"matrix"
 
@@ -19,6 +19,7 @@ type		"int"|"float"|"matrix"
 
 "="				{ return ASSIGN; }
 "=="			{ return EQUAL; }
+"!="			{ return NOT_EQUAL; }
 ">="			{ return INFEQ; }
 "<="			{ return SUPEQ; }
 "while" 		{ return WHILE; }
@@ -33,7 +34,7 @@ type		"int"|"float"|"matrix"
 "*"				{ return MUL; }
 "/"				{ return DIV; }
 "+"				{ return PLUS; }
-"+-∼"			{ return OP_UNAIRE; }
+"+∼"			{ return OP_UNAIRE; }
 "return"		{ return RETURN; }
 "printf"		{ return PRINTF; }
 "print"			{ return PRINT; }

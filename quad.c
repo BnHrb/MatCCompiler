@@ -99,6 +99,12 @@ char* get_op_name(int op) {
 		case PRINT_:
 			return "PRINT";
 			break;
+		case MIN_UNAIRE_:
+			return "MIN_UN";
+			break;
+		case NOT_EQUAL_:
+			return "NOT_EQ";
+			break;
 	}
 
 	return "NULL";
