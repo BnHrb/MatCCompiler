@@ -2,6 +2,7 @@
 #define MIPS_H
 #include <stdlib.h>
 #include <stdio.h>
+#include "symbol.h"
 #include "quad.h"
 
 int translate_to_mips(FILE *, Symbol*, Quad*);
