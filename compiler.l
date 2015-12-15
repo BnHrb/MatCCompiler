@@ -23,6 +23,7 @@ type		"int"|"float"|"matrix"
 ">="			{ return INFEQ; }
 "<="			{ return SUPEQ; }
 "while" 		{ return WHILE; }
+"for"			{ return FOR; }
 "if"			{ return IF; }
 "else"			{ return ELSE; }
 "true"			{ return TRUE; }

@@ -39,7 +39,7 @@
 %token <value_float> NUM_FLOAT
 %token EQUAL SUPEQ INFEQ NOT_EQUAL
 %token ASSIGN
-%token WHILE
+%token WHILE FOR
 %token IF ELSE
 %token PLUS MIN MUL DIV MIN_UNAIRE
 %token OP_UNAIRE
@@ -73,33 +73,6 @@ axiom:
 	function
 		{
 			printf("DONE\n");
-
-			// Symbol* cst_true = symbol_newcst_int(&symbol_table, 1);
-			// Symbol* cst_false = symbol_newcst_int(&symbol_table, 0);
-			// Symbol* result = symbol_add(&symbol_table, "result");
-			// Quad* is_true;
-			// Quad* is_false;
-			// Quad* jump;
-			// Symbol* label_true;
-			// Symbol* label_false;
-
-			// label_true = symbol_newcst_int(&symbol_table, next_quad);
-			// is_true = quad_gen(&next_quad, ASSIGN_, cst_true, NULL, result);
-			// jump = quad_gen(&next_quad, GOTO_, NULL, NULL, NULL);
-			// label_false = symbol_newcst_int(&symbol_table, next_quad);
-			// is_false = quad_gen(&next_quad, ASSIGN_, cst_false, NULL, result);
-			// quad_list_complete($1.truelist, label_true);
-			// quad_list_complete($1.falselist, label_false);
-
-			// code = $1.code;
-			// quad_add(&code, is_true);
-			// quad_add(&code, jump);
-			// quad_add(&code, is_false);
-
-			// symbol_table_print(&symbol_table);
-			//quad_list_print($1.truelist);
-			//quad_list_print($1.falselist);
-			//code->quad_print(code);
 
 			code = $1.code;
 
@@ -244,7 +217,39 @@ arr_init :  NUM_INT ',' arr_init								{}
 			;
 
 structure:
-	WHILE '(' condition ')' '{' stmtlist '}' 
+	FOR '('stmt ';' condition ';' stmt')' '{' stmtlist '}'
+		{
+			printf("stmt -> for ( stmt ; condition ; stmt ) { stmtlist }\n");
+
+			Symbol* cst_true = symbol_newcst_int(&symbol_table, 1);
+			Symbol* cst_false = symbol_newcst_int(&symbol_table, 0);
+			Symbol* result = symbol_add(&symbol_table, "result", INT_);
+			Quad* is_true;
+			Quad* is_false;
+			Quad* jump;
+			Symbol* label_true;
+			Symbol* label_false;
+			Symbol* label_jump;
+
+			label_true = symbol_newcst_int(&symbol_table, next_quad);
+			is_true = quad_gen(&next_quad, ASSIGN_, cst_true, NULL, result);
+			label_jump = symbol_newcst_int(&symbol_table, $5.code->label);
+			jump = quad_gen(&next_quad, GOTO_, NULL, NULL, label_jump);
+			label_false = symbol_newcst_int(&symbol_table, next_quad);
+			is_false = quad_gen(&next_quad, ASSIGN_, cst_false, NULL, result);
+			quad_list_complete($5.truelist, label_true);
+			quad_list_complete($5.falselist, label_false);
+
+			$$.code = $3.code;
+			quad_add(&$$.code, $5.code);
+			quad_add(&$$.code, is_true);
+			quad_add(&$$.code, $7.code);
+			quad_add(&$$.code, $10.code);
+			quad_add(&$$.code, jump);
+			quad_add(&$$.code, is_false);
+
+		}
+	| WHILE '(' condition ')' '{' stmtlist '}' 
 		{
 			printf("stmt -> while ( condition ) { stmtlist }\n");
 
