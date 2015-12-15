@@ -9,7 +9,7 @@
 %option noinput
 
 identifier	[a-zA-Z_]+[0-9a-zA-Z_]*
-number 		[-]?[0-9]+
+number 		[0-9]+
 floatnumber {number}\.{number}
 comment 	"/*"([^*]*[*][^*/])*[^*]*[*]+"/"|\/\/.*
 string     	\"(\\.|[^\"\\])*\"
@@ -19,6 +19,8 @@ type		"int"|"float"|"matrix"
 
 "="				{ return ASSIGN; }
 "=="			{ return EQUAL; }
+"++"			{ return INCR; }
+"--"			{ return DECR; }
 "!="			{ return NOT_EQUAL; }
 ">="			{ return INFEQ; }
 "<="			{ return SUPEQ; }
@@ -35,10 +37,11 @@ type		"int"|"float"|"matrix"
 "*"				{ return MUL; }
 "/"				{ return DIV; }
 "+"				{ return PLUS; }
-"+∼"			{ return OP_UNAIRE; }
+"∼"				{ return yytext[0]; }
 "return"		{ return RETURN; }
 "printf"		{ return PRINTF; }
 "print"			{ return PRINT; }
+"printmat"		{ return PRINTMAT; }
 ","				{ return yytext[0]; }
 {type}			{ yylval.string = strdup(yytext); return TYPE; }
 {string} 		{ yylval.string = strdup(yytext); return STRING; }

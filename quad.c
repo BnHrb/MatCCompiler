@@ -108,8 +108,11 @@ char* get_op_name(int op) {
 		case INIT_ARRAY_:
 			return "ARR_INIT";
 			break;
-		case INDEX_ARRAY_:
-			return "ARR_INDEX";
+		case INDEX_ARRAY_X_:
+			return "ARR_IDX_X";
+			break;
+		case INDEX_ARRAY_Y_:
+			return "ARR_IDX_Y";
 			break;
 	}
 
