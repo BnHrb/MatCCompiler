@@ -105,6 +105,9 @@ char* get_op_name(int op) {
 		case NOT_EQUAL_:
 			return "NOT_EQ";
 			break;
+		case INIT_ARRAY_:
+			return "ARR_INIT";
+			break;
 	}
 
 	return "NULL";

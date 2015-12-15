@@ -7,6 +7,8 @@ Symbol* symbol_alloc() {
 	new->value.null_v = NULL;
 	new->next = NULL;
 	new->isConstant = false;
+	new->dim.x = 0;
+	new->dim.y = 0;
 	return new;
 }
 
@@ -17,26 +19,6 @@ void symbol_free(Symbol* s) {
 		free(s);
 	}
 }
-
-// Symbol* symbol_add(Symbol** tds, char* id, symbol_type type) {
-// 	if(*tds == NULL) {
-// 		char *temp=malloc(sizeof(char)*strlen(id));
-// 		strcpy(temp,"var_");
-// 		*tds = symbol_alloc();
-// 		(*tds)->id = strdup(id);
-// 		(*tds)->type = type;
-// 		return *tds;
-// 	}
-// 	else {
-// 		Symbol* tmp = *tds;
-// 		while(tmp->next != NULL)
-// 			tmp = tmp->next;
-// 		tmp->next = symbol_alloc();
-// 		tmp->next->id = strdup(id);
-// 		tmp->next->type = type;
-// 		return tmp->next;
-// 	}
-// }
 
 Symbol* symbol_add(Symbol** tds, char* id, symbol_type type) {
 	if(*tds == NULL) {
@@ -133,6 +115,9 @@ void symbol_print(Symbol* s, bool header) {
 			break;
 		case NULL_:
 			printf("%s\t\t%s\t\t%s\n", s->id, (s->isConstant?"True":"False"), "n/a");
+			break;
+		case ARRAY_:
+			printf("%s\t\t%s\t\tx:%dy:%d\n", s->id, (s->isConstant?"True":"False"), s->dim.x, s->dim.y);
 			break;
 	}
 }

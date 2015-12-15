@@ -16,12 +16,18 @@ typedef union {
 } symbol_value;
 
 typedef enum {
-	INT_, FLOAT_, STRING_, NULL_
+	INT_, FLOAT_, STRING_, NULL_, ARRAY_
 } symbol_type;
+
+typedef struct dimension {
+	int x;
+	int y;
+} symbol_dim;
 
 typedef struct symbol {
 	bool isConstant;
 	char* id;
+	symbol_dim dim;
 	symbol_value value;
 	symbol_type type;
 	struct symbol* next;

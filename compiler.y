@@ -5,7 +5,7 @@
 	#include "symbol.h"
 	#include "quad.h"
 	#include "quad_list.h"
-	#include "mips.h"
+	//#include "mips.h"
 
 	#define YYDEBUG 0
 
@@ -32,6 +32,10 @@
 		struct quad_list* truelist;
 		struct quad_list* falselist; 
 	} code_condition;
+	struct {
+		int x;
+		int y;
+	} code_array;
 }
 
 %token <string> ID STRING TYPE
@@ -55,6 +59,7 @@
 %type <code_expression> stmt
 %type <code_expression> stmtlist
 %type <code_expression> structure
+%type <code_array> arr
 %type <label> tag
 
 %left OR
@@ -159,7 +164,14 @@ stmt:
 		}
 	| TYPE ID arr
 		{
-			printf("stmt -> TYPE ID (%s) arr\n", $2);	
+			printf("stmt -> TYPE ID (%s) arr\n", $2);
+			Symbol* s = NULL;
+			
+			s = symbol_add(&symbol_table, $2, ARRAY_);
+			
+			s->dim.x = $3.x;
+			s->dim.y = $3.y;
+			quad_add(&$$.code, quad_gen(&next_quad, INIT_ARRAY_, s, NULL, NULL));
 		}
 	| ID arr ASSIGN expr 
 		{
@@ -311,7 +323,6 @@ structure:
 			quad_add(&$$.code, jump);
 			quad_add(&$$.code, is_false);
 			quad_add(&$$.code, end);
-
 		}
 	| IF '(' condition ')' stmt ';'
 		{
@@ -388,10 +399,14 @@ arr:
 	'[' NUM_INT ']'
 		{	
 			printf("arr -> [ NUM_INT ]\n");
+			$$.x = $2;
+			$$.y = 0;
 		}
 	| '[' NUM_INT ']' '[' NUM_INT ']'
 		{
 			printf("arr -> [ NUM_INT ] [ NUM_INT ]\n");
+			$$.x = $2;
+			$$.y = $5;
 		}
 	;
 
@@ -658,7 +673,7 @@ int main(int argc, char* argv[]) {
 
 	yyparse();
 
-	translate_to_mips(output, symbol_table, code);
+	//translate_to_mips(output, symbol_table, code);
 
 	return 0;
 }
