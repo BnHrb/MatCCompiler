@@ -47,7 +47,9 @@ int translate_to_mips(FILE *output, Symbol* symbol_table, Quad* code) {
 					fprintf(output, "\tadd.s $f2, $f0, $f1\n");
 					fprintf(output, "\ts.s $f2, %s\n",code->res->id);
 					break;
-					default:break;
+					default:
+					printf("============\n");
+					break;
 				}
 			break;
 			case MIN_:
@@ -61,12 +63,14 @@ int translate_to_mips(FILE *output, Symbol* symbol_table, Quad* code) {
 					fprintf(output, "\tsw $t2, %s\n",code->res->id);
 					break;
 					case FLOAT_:
-					fprintf(output, "\tl.s $f0, %f\n",code->arg1->value.float_v);
-					fprintf(output, "\tl.s $f1, %f\n",code->arg2->value.float_v);
+					fprintf(output, "\tl.s $f0, %s\n",code->arg1->id);
+					fprintf(output, "\tl.s $f1, %s\n",code->arg2->id);
 					fprintf(output, "\tsub.s $f2, $f0, $f1\n");
 					fprintf(output, "\ts.s $f2, %s\n",code->res->id);
 					break;
-					default:break;
+					default:
+					printf("============\n");
+					break;
 				}
 			break;
 			case MUL_:
@@ -80,12 +84,14 @@ int translate_to_mips(FILE *output, Symbol* symbol_table, Quad* code) {
 					fprintf(output, "\tsw $t2, %s\n",code->res->id);
 					break;
 					case FLOAT_:
-					fprintf(output, "\tl.s $f0, %f\n",code->arg1->value.float_v);
-					fprintf(output, "\tl.s $f1, %f\n",code->arg2->value.float_v);
+					fprintf(output, "\tl.s $f0, %s\n",code->arg1->id);
+					fprintf(output, "\tl.s $f1, %s\n",code->arg2->id);
 					fprintf(output, "\tmul.s $f2, $f0, $f1\n");
 					fprintf(output, "\ts.s $f2, %s\n",code->res->id);
 					break;
-					default:break;
+					default:
+					printf("============\n");
+					break;
 				}
 			break;
 			case DIV_:
@@ -99,12 +105,14 @@ int translate_to_mips(FILE *output, Symbol* symbol_table, Quad* code) {
 					fprintf(output, "\tsw $t2, %s\n",code->res->id);
 					break;
 					case FLOAT_:
-					fprintf(output, "\tl.s $f0, %f\n",code->arg1->value.float_v);
-					fprintf(output, "\tl.s $f1, %f\n",code->arg2->value.float_v);
+					fprintf(output, "\tl.s $f0, %s\n",code->arg1->id);
+					fprintf(output, "\tl.s $f1, %s\n",code->arg2->id);
 					fprintf(output, "\tdiv.s $f2, $f0, $f1\n");
 					fprintf(output, "\ts.s $f2, %s\n",code->res->id);
 					break;
-					default:break;
+					default:
+					printf("============\n");
+					break;
 				}
 			break;
 			case SUP_:
@@ -147,6 +155,13 @@ int translate_to_mips(FILE *output, Symbol* symbol_table, Quad* code) {
 				fprintf(output, "\tbeq $t0, $t1, next%d\n",code->res->value.int_v);
 				fprintf(output, "\tbne $t0, $t1, next%d\n",code->next->res->value.int_v);
 			break;
+			case NOT_EQUAL_:
+				fprintf(stdout, "NOT EQUAL %s %s %s\n",code->arg1->id, code->arg2->id , code->res->id);
+				fprintf(output, "\tlw $t0, %s\n", code->arg1->id);
+				fprintf(output, "\tlw $t1, %s\n", code->arg2->id);
+				fprintf(output, "\tbne $t0, $t1, next%d\n",code->res->value.int_v);
+				fprintf(output, "\tbeq $t0, $t1, next%d\n",code->next->res->value.int_v);
+			break;
 			case ASSIGN_:
 				fprintf(stdout, "ASSIGN %s %s\n",code->arg1->id, code->res->id);
 				switch(code->arg1->type)
@@ -160,16 +175,42 @@ int translate_to_mips(FILE *output, Symbol* symbol_table, Quad* code) {
 					fprintf(output, "\tl.s $f0, %s\n", code->arg1->id);
 					fprintf(output, "\ts.s $f0, %s\n", code->res->id);
 					break;
-					default:break;
+					default:
+					printf("============\n");
+					break;
 				}
 			break;
 			case GOTO_:
 				{
 					//Symbol *s = symbol_lookup(&symbol_table, code->res->id);
 					fprintf(stdout, "GOTO %s\n", code->res->id);
-					fprintf(output, "\tj next%d\n", code->next->label);
+					//if(code->next->op != GOTO_)
+						//fprintf(output, "\tj next%d #lll %d\n", code->next->label,code->next->op);
 				}
 			break;
+			case MIN_UNAIRE_:
+				fprintf(stdout, "MIN_UNAIRE\n");
+				switch(code->arg1->type)
+				{
+					case INT_:
+					fprintf(output, "\tlw $t0, %s\n", code->arg1->id);
+					fprintf(output, "\tsubu $t1, $zero, $t0\n");
+					fprintf(output, "\tsw $t1, %s\n", code->res->id);
+					break;
+					case FLOAT_:
+					//fprintf(output, "\tla $a0, %s\n",code->arg1->id);
+					fprintf(output, "\tl.s $f0, %s\n", code->arg1->id);
+					fprintf(output, "\tsub.s $f1, $zero, $f0\n");
+					fprintf(output, "\ts.s $f1, %s\n", code->res->id);
+					break;
+					default:
+					printf("============\n");
+					break;
+				}
+			break;
+			case INIT_ARRAY_:
+			case INDEX_ARRAY_X_:
+			case INDEX_ARRAY_Y_:
 			case NOP_:
 				fprintf(output, "\t#NOP\n");
 				fprintf(output, "\tnop\n");
@@ -184,9 +225,7 @@ int translate_to_mips(FILE *output, Symbol* symbol_table, Quad* code) {
 					break;
 					case FLOAT_:
 					fprintf(output, "\tli $v0, 2\n");
-					fprintf(output, "\tla $a0, %s\n",code->arg1->id);
-					fprintf(output, "\tl.s $f0, ($a0)\n");
-					fprintf(output, "\tmov.s $f12, $f0\n");
+					fprintf(output, "\tlwc1 $f12, %s\n",code->arg1->id);
 					break;
 					case STRING_:
 					fprintf(output, "\tli $v0, 4\n");
@@ -196,11 +235,13 @@ int translate_to_mips(FILE *output, Symbol* symbol_table, Quad* code) {
 					fprintf(output, "\tli $v0, 4\n");
 					fprintf(output, "\tla $a0, \"null\"\n");
 					break;
-					default:break;
+					default:
+					printf("============\n");
+					break;
 				}
 				fprintf(output, "\tsyscall\n");
-				if(code->next != NULL && code->next->res != NULL  && code->next->res->isConstant && code->next->res->value.int_v > 0)
-					fprintf(output, "\tj next%d\n",code->next->res->value.int_v);
+				//if(code->next != NULL && code->next->res != NULL  && code->next->res->isConstant && code->next->res->value.int_v > 0)
+				//	fprintf(output, "\tj next%d\n",code->next->res->value.int_v);
 			break;
 		}
 		if(code->res != NULL  && code->res->value.int_v > 0)
